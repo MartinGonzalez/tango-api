@@ -1,0 +1,13 @@
+{
+  "name": "tango-api",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18.3.0"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.12"
+  }
+}
