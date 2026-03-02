@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { notifyReloadWithRetry } from "../src/cli/dev.ts";
-import type { NotifyResult } from "../src/cli/dev.ts";
+import { notifyReloadWithRetry } from "../src/sdk/cli/dev.ts";
+import type { NotifyResult } from "../src/sdk/cli/dev.ts";
 
 describe("notifyReloadWithRetry", () => {
   test("first attempt succeeds — no retry, no launch", async () => {

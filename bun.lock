@@ -4,66 +4,24 @@
   "workspaces": {
     "": {
       "name": "tango-api",
-      "dependencies": {
+      "devDependencies": {
         "@types/react": "^18.3.0",
+        "linkedom": "^0.18.12",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-      },
-      "devDependencies": {
-        "linkedom": "^0.18.12",
-      },
-    },
-    "packages/api": {
-      "name": "@tango/api",
-      "version": "0.1.0",
-      "bin": {
-        "tango-sdk": "./src/cli.ts",
-      },
-      "dependencies": {
-        "@tango/instrument-sdk": "file:../sdk",
-        "@tango/instrument-ui": "file:../ui",
-      },
-    },
-    "packages/create-tango-instrument": {
-      "name": "create-tango-instrument",
-      "version": "0.1.0",
-      "bin": {
-        "create-tango-instrument": "./src/index.ts",
-      },
-    },
-    "packages/sdk": {
-      "name": "@tango/instrument-sdk",
-      "version": "0.1.0",
-      "bin": {
-        "tango-sdk": "./src/cli/index.ts",
       },
       "peerDependencies": {
         "react": ">=18.0.0",
         "react-dom": ">=18.0.0",
       },
     },
-    "packages/ui": {
-      "name": "@tango/instrument-ui",
-      "version": "0.1.0",
-      "peerDependencies": {
-        "react": ">=18.0.0",
-      },
-    },
   },
   "packages": {
-    "@tango/api": ["@tango/api@workspace:packages/api"],
-
-    "@tango/instrument-sdk": ["@tango/instrument-sdk@workspace:packages/sdk"],
-
-    "@tango/instrument-ui": ["@tango/instrument-ui@workspace:packages/ui"],
-
     "@types/prop-types": ["@types/prop-types@15.7.15", "", {}, "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="],
 
     "@types/react": ["@types/react@18.3.28", "", { "dependencies": { "@types/prop-types": "*", "csstype": "^3.2.2" } }, "sha512-z9VXpC7MWrhfWipitjNdgCauoMLRdIILQsAEV+ZesIzBq/oUlxk0m3ApZuMFCXdnS4U7KrI+l3WRUEGQ8K1QKw=="],
 
     "boolbase": ["boolbase@1.0.0", "", {}, "sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww=="],
-
-    "create-tango-instrument": ["create-tango-instrument@workspace:packages/create-tango-instrument"],
 
     "css-select": ["css-select@5.2.2", "", { "dependencies": { "boolbase": "^1.0.0", "css-what": "^6.1.0", "domhandler": "^5.0.2", "domutils": "^3.0.1", "nth-check": "^2.0.1" } }, "sha512-TizTzUddG/xYLA3NXodFM0fSbNizXjOKhqiQQwvhlspadZokn1KDy0NZFS0wuEubIYAV5/c1/lAr0TaaFXEXzw=="],
 
@@ -102,10 +60,6 @@
     "scheduler": ["scheduler@0.23.2", "", { "dependencies": { "loose-envify": "^1.1.0" } }, "sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ=="],
 
     "uhyphen": ["uhyphen@0.2.0", "", {}, "sha512-qz3o9CHXmJJPGBdqzab7qAYuW8kQGKNEuoHFYrBwV6hWIMcpAmxDLXojcHfFr9US1Pe6zUswEIJIbLI610fuqA=="],
-
-    "@tango/api/@tango/instrument-sdk": ["@tango/instrument-sdk@file:packages/sdk", { "peerDependencies": { "react": ">=18.0.0", "react-dom": ">=18.0.0" }, "bin": { "tango-sdk": "./src/cli/index.ts" } }],
-
-    "@tango/api/@tango/instrument-ui": ["@tango/instrument-ui@file:packages/ui", { "peerDependencies": { "react": ">=18.0.0" } }],
 
     "dom-serializer/entities": ["entities@4.5.0", "", {}, "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw=="],
   }

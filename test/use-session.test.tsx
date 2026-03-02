@@ -3,13 +3,13 @@ import React, { type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 import { parseHTML } from "linkedom";
-import { InstrumentApiProvider } from "../src/react.tsx";
-import { useSession } from "../src/react.tsx";
+import { InstrumentApiProvider } from "../src/sdk/react.tsx";
+import { useSession } from "../src/sdk/react.tsx";
 import type {
   InstrumentFrontendAPI,
   HostEventMap,
-} from "../src/types/instrument-sdk.ts";
-import type { ContentBlock } from "../src/types/stream.ts";
+} from "../src/sdk/types/instrument-sdk.ts";
+import type { ContentBlock } from "../src/sdk/types/stream.ts";
 
 // --- DOM setup via linkedom ---
 const { document, window } = parseHTML("<!DOCTYPE html><html><body></body></html>");

@@ -32,7 +32,7 @@ export type {
   TangoPanelSlot,
   UseSessionOptions,
   UseSessionReturn,
-} from "@tango/instrument-sdk";
+} from "./sdk/index.ts";
 
 // SDK React hooks & helpers
 export {
@@ -47,7 +47,7 @@ export {
   useSession,
   useMemoAction,
   useHostApiMemo,
-} from "@tango/instrument-sdk/react";
+} from "./sdk/react.tsx";
 
 // UI React components
 export {
@@ -81,7 +81,7 @@ export {
   UIGroupEmpty,
   UIGroupItem,
   UIMarkdownRenderer as UIMarkdownRendererBase,
-} from "@tango/instrument-ui/react";
+} from "./ui/react.tsx";
 // UI React types
 export type {
   UIGroupItemMeta,
@@ -90,12 +90,12 @@ export type {
   UIIconName,
   UIGroupSubtitle,
   UIGroupTitle,
-} from "@tango/instrument-ui/react";
+} from "./ui/react.tsx";
 
 // Convenience wrapper that auto-injects renderMarkdown from the instrument API
 import React from "react";
-import { useInstrumentApi } from "@tango/instrument-sdk/react";
-import { UIMarkdownRenderer as _MarkdownRendererBase } from "@tango/instrument-ui/react";
+import { useInstrumentApi } from "./sdk/react.tsx";
+import { UIMarkdownRenderer as _MarkdownRendererBase } from "./ui/react.tsx";
 
 export function UIMarkdownRenderer(props: {
   content: string;

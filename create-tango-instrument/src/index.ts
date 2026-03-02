@@ -78,7 +78,7 @@ async function main(): Promise<void> {
 
     // Resolve @tango/api path relative to the target directory
     const thisDir = dirname(new URL(import.meta.url).pathname);
-    const apiPath = relative(dir, resolve(thisDir, "../../api"));
+    const apiPath = relative(dir, resolve(thisDir, "../.."));
 
     console.log("\nScaffolding...");
 

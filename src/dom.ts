@@ -5,9 +5,9 @@ import {
   dropdown as createUIDropdown,
   segmentedControl as createUISegmentedControl,
   tabs as createUITabs,
-} from "@tango/instrument-ui";
+} from "./ui/index.ts";
 
-export { Icon } from "@tango/instrument-ui";
+export { Icon } from "./ui/index.ts";
 
 export const UIDOM = {
   ensureStyles: ensureUIDOMStyles,
@@ -32,4 +32,4 @@ export type {
   UIDOMSegmentedControlOptions,
   UIDOMTabDefinition,
   UIDOMTabsOptions,
-} from "@tango/instrument-ui";
+} from "./ui/index.ts";

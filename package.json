@@ -1,13 +1,26 @@
 {
   "name": "tango-api",
-  "private": true,
-  "workspaces": ["packages/*"],
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@types/react": "^18.3.0"
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./dom": "./src/dom.ts",
+    "./backend": "./src/backend.ts",
+    "./cli": "./src/cli.ts",
+    "./ui": "./src/ui/index.ts"
+  },
+  "bin": {
+    "tango-sdk": "./src/sdk/cli/index.ts",
+    "create-tango-instrument": "./create-tango-instrument/src/index.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18.3.0",
     "linkedom": "^0.18.12"
   }
 }

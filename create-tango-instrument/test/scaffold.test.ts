@@ -27,37 +27,29 @@ describe("scaffold", () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  test("generates package.json with @tango/api dependency", async () => {
+  test("generates package.json with tango-api dependency", async () => {
     const options = defaultOptions(tmpDir);
     await scaffold(options);
 
     const pkg = JSON.parse(await readFile(join(tmpDir, "package.json"), "utf8"));
-    expect(pkg.dependencies).toHaveProperty("@tango/api");
-    expect(pkg.dependencies["@tango/api"]).toBe("file:../api");
-    // Should NOT have sdk or ui as direct dependencies
-    expect(pkg.dependencies).not.toHaveProperty("@tango/instrument-sdk");
-    expect(pkg.dependencies).not.toHaveProperty("@tango/instrument-ui");
+    expect(pkg.dependencies).toHaveProperty("tango-api");
+    expect(pkg.dependencies["tango-api"]).toBe("file:../api");
   });
 
-  test("frontend imports from @tango/api", async () => {
+  test("frontend imports from tango-api", async () => {
     const options = defaultOptions(tmpDir);
     await scaffold(options);
 
     const content = await readFile(join(tmpDir, "src/index.tsx"), "utf8");
-    expect(content).toContain('from "@tango/api"');
-    // Should NOT import from sdk or ui directly
-    expect(content).not.toContain("@tango/instrument-sdk");
-    expect(content).not.toContain("@tango/instrument-ui");
+    expect(content).toContain('from "tango-api"');
   });
 
-  test("backend imports from @tango/api/backend", async () => {
+  test("backend imports from tango-api/backend", async () => {
     const options = { ...defaultOptions(tmpDir), includeBackend: true };
     await scaffold(options);
 
     const content = await readFile(join(tmpDir, "src/backend.ts"), "utf8");
-    expect(content).toContain('from "@tango/api/backend"');
-    // Should NOT import from sdk directly
-    expect(content).not.toContain("@tango/instrument-sdk");
+    expect(content).toContain('from "tango-api/backend"');
   });
 
   test("does not generate backend.ts when includeBackend is false", async () => {
@@ -95,6 +87,6 @@ describe("scaffold", () => {
     await scaffold(options);
 
     const pkg = JSON.parse(await readFile(join(tmpDir, "package.json"), "utf8"));
-    expect(pkg.dependencies["@tango/api"]).toBe("file:../../packages/api");
+    expect(pkg.dependencies["tango-api"]).toBe("file:../../packages/api");
   });
 });

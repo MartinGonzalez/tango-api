@@ -64,7 +64,7 @@ function generateFrontend(options: ScaffoldOptions): string {
   UIPanelHeader,
   UISection,
   UIEmptyState,
-} from "@tango/api";
+} from "tango-api";
 
 ${componentDefs}
 
@@ -82,7 +82,7 @@ ${panelImports(options.panels)},
 }
 
 function generateBackend(options: ScaffoldOptions): string {
-  return `import { defineBackend, type InstrumentBackendContext } from "@tango/api/backend";
+  return `import { defineBackend, type InstrumentBackendContext } from "tango-api/backend";
 
 async function helloAction(
   ctx: InstrumentBackendContext,
@@ -113,7 +113,7 @@ export default defineBackend({
 }
 
 function generatePackageJson(options: ScaffoldOptions): string {
-  const cli = "bun node_modules/@tango/api/src/cli.ts";
+  const cli = "bun node_modules/tango-api/src/cli.ts";
   const scripts: Record<string, string> = {
     dev: `${cli} dev`,
     build: `${cli} build`,
@@ -122,7 +122,7 @@ function generatePackageJson(options: ScaffoldOptions): string {
   };
 
   const deps: Record<string, string> = {
-    "@tango/api": `file:${options.apiPath}`,
+    "tango-api": `file:${options.apiPath}`,
   };
 
   const devDeps: Record<string, string> = {

@@ -50,7 +50,7 @@ function resolveSource(cwd: string, entrypoint: string): string {
  * Looks up from the SDK directory first, then falls back to the project cwd.
  */
 function resolveReactPackagePath(packageName: string, cwd: string): string | null {
-  const sdkDir = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+  const sdkDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
   const candidates = [
     join(sdkDir, "node_modules", packageName),
     join(resolve(sdkDir, ".."), "node_modules", packageName),
