@@ -812,6 +812,7 @@ export function statusTone(opts: { label: string; tone?: BadgeTone }): HTMLEleme
 export function link(opts: {
   href: string;
   label: string;
+  color?: string;
   external?: boolean;
   onClick?: (event: Event) => void;
 }): HTMLAnchorElement {
@@ -821,6 +822,9 @@ export function link(opts: {
     href: opts.href,
     text: opts.label,
   });
+  if (opts.color) {
+    node.style.setProperty("--tui-link-color", opts.color);
+  }
   if (isExternal) {
     node.setAttribute("target", "_blank");
     node.setAttribute("rel", "noopener noreferrer");

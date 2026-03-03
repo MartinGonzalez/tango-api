@@ -800,14 +800,17 @@ function isExternalHref(href: string): boolean {
 export function UILink(props: {
   href: string;
   label: string;
+  color?: string;
   external?: boolean;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }): JSX.Element {
   const isExternal = props.external ?? isExternalHref(props.href);
+  const style = props.color ? { "--tui-link-color": props.color } as React.CSSProperties : undefined;
   return (
     <a
       className="tui-link"
       href={props.href}
+      style={style}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       onClick={props.onClick}

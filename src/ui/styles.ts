@@ -1071,7 +1071,6 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 18px 18px;
 }
 
 .tui-root .tui-kv {
@@ -1107,14 +1106,15 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-link {
-  color: var(--tui-blue);
+  color: var(--tui-link-color, var(--tui-primary));
   text-decoration: none;
   cursor: pointer;
   transition: color 120ms ease;
 }
 
 .tui-root .tui-link:hover {
-  color: #60a5fa;
+  color: var(--tui-link-color, var(--tui-primary));
+  filter: brightness(1.2);
   text-decoration: underline;
 }
 
@@ -1140,7 +1140,6 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 18px 18px;
   font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
   font-size: 12px;
   line-height: 1.6;
