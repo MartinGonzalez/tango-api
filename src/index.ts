@@ -110,5 +110,6 @@ export function UIMarkdownRenderer(props: {
   return React.createElement(_MarkdownRendererBase, {
     ...props,
     renderMarkdown: api.ui.renderMarkdown,
+    openUrl: api.ui.openUrl,
   });
 }

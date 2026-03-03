@@ -1071,7 +1071,19 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 18px 18px;
+  padding: 16px 0 18px;
+}
+
+.tui-root .tui-markdown-body a {
+  color: var(--tui-link-color, var(--tui-primary));
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tui-root .tui-markdown-body a:hover {
+  color: var(--tui-link-color, var(--tui-primary));
+  filter: brightness(1.2);
+  text-decoration: underline;
 }
 
 .tui-root .tui-kv {
@@ -1128,11 +1140,11 @@ export const UI_STYLES = `
 .tui-root .tui-inline-code {
   font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #3A2929;
+  border: 1px solid #714545;
   border-radius: var(--tui-radius-tight);
   padding: 1px 5px;
-  color: var(--tui-text);
+  color: #F28888;
   white-space: nowrap;
 }
 
@@ -1141,7 +1153,7 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 16px 18px 18px;
+  padding: 16px 0 18px;
   font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
   font-size: 12px;
   line-height: 1.6;

@@ -731,6 +731,7 @@ export function UIMarkdownRenderer(props: {
   renderMarkdown: (text: string) => string;
   rawViewEnabled?: boolean;
   className?: string;
+  openUrl?: (url: string) => void;
 }): JSX.Element {
   const [view, setView] = useState<"preview" | "raw">("preview");
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -743,6 +744,25 @@ export function UIMarkdownRenderer(props: {
       bodyRef.current.innerHTML = html;
     }
   }, [html, showRaw]);
+
+  useEffect(() => {
+    const node = bodyRef.current;
+    const openUrl = props.openUrl;
+    if (!node || !openUrl) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (href && /^https?:\/\//.test(href)) {
+        e.preventDefault();
+        openUrl(href);
+      }
+    };
+
+    node.addEventListener("click", handleClick);
+    return () => node.removeEventListener("click", handleClick);
+  }, [props.openUrl]);
 
   const classes = [
     "tui-markdown-renderer",
