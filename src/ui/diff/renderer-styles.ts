@@ -80,12 +80,13 @@ export const DIFF_STYLES = `
   font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: 12px;
   color: var(--tui-text);
-  background: var(--tui-primary);
-  transition: filter 0.15s;
+  background: var(--tui-bg-secondary);
+  border-bottom: 1px solid var(--tui-primary);
+  transition: background 0.15s;
 }
 
 .tui-root .tui-diff-file-header:hover {
-  filter: brightness(1.15);
+  background: var(--tui-bg-hover);
 }
 
 .tui-root .tui-diff-file-header-main {
