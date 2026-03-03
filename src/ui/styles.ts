@@ -1115,27 +1115,52 @@ export const UI_STYLES = `
   background: #1a1a1a;
   border: 1px solid var(--tui-border);
   border-radius: var(--tui-radius-panel);
-  padding: 14px 16px;
+  padding: 0;
   margin: 8px 0;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 58vh;
-}
-
-.tui-root .tui-markdown-body .code-block.has-language {
-  padding-top: 36px;
+  overflow: hidden;
 }
 
 .tui-root .tui-markdown-body .code-block .code-block-lang {
-  display: inline-block;
-  position: absolute;
-  top: 10px;
-  left: 16px;
-  color: #9a9994;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  display: none;
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--tui-border);
+  background: #222;
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-header-lang {
+  font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
+  font-size: 11px;
+  color: var(--tui-text-secondary);
   text-transform: lowercase;
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--tui-text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--tui-radius-tight);
+  width: 22px;
+  height: 22px;
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-copy:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--tui-text);
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-copy.copied {
+  color: #3fb950;
 }
 
 .tui-root .tui-markdown-body .code-block code {
@@ -1143,30 +1168,14 @@ export const UI_STYLES = `
   background: none;
   border: none;
   border-radius: 0;
-  padding: 0;
+  padding: 14px 16px;
   color: #f0efeb;
   white-space: pre;
   font-size: 13px;
   line-height: 1.62;
   font-family: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
-}
-
-.tui-root .tui-markdown-body .code-block .tui-code-copy {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  border: none;
-  background: transparent;
-  color: var(--tui-text-secondary);
-  cursor: pointer;
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: var(--tui-radius-tight);
-}
-
-.tui-root .tui-markdown-body .code-block .tui-code-copy:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--tui-text);
+  overflow-x: auto;
+  max-height: 58vh;
 }
 
 .tui-root .tui-markdown-body .code-block .token.comment { color: var(--code-token-comment); }

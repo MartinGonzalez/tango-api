@@ -730,25 +730,54 @@ export function UIGroupItem(props: {
   );
 }
 
+const COPY_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+const CHECK_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
 function enhanceCodeBlocks(container: HTMLElement): void {
   const pres = container.querySelectorAll("pre.code-block");
   for (const pre of pres) {
-    if (pre.querySelector(".tui-code-copy")) continue;
+    if (pre.querySelector(".tui-code-header")) continue;
     const code = pre.querySelector("code");
     if (!code) continue;
+
+    let lang = "";
+    const langSpan = pre.querySelector(".code-block-lang");
+    if (langSpan) {
+      lang = langSpan.textContent ?? "";
+    } else {
+      for (const cls of code.classList) {
+        const match = cls.match(/^(?:language-|lang-)(.+)$/);
+        if (match) { lang = match[1]; break; }
+      }
+    }
+
+    const header = document.createElement("div");
+    header.className = "tui-code-header";
+
+    const langLabel = document.createElement("span");
+    langLabel.className = "tui-code-header-lang";
+    langLabel.textContent = lang || "code";
+    header.appendChild(langLabel);
 
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
     copyBtn.className = "tui-code-copy";
-    copyBtn.textContent = "Copy";
+    copyBtn.innerHTML = COPY_ICON;
+    copyBtn.title = "Copy code";
     copyBtn.addEventListener("click", () => {
       const text = code.textContent ?? "";
       navigator.clipboard.writeText(text).then(() => {
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => { copyBtn.textContent = "Copy"; }, 1500);
+        copyBtn.innerHTML = CHECK_ICON;
+        copyBtn.classList.add("copied");
+        setTimeout(() => {
+          copyBtn.innerHTML = COPY_ICON;
+          copyBtn.classList.remove("copied");
+        }, 1500);
       });
     });
-    pre.appendChild(copyBtn);
+    header.appendChild(copyBtn);
+
+    pre.insertBefore(header, pre.firstChild);
   }
 }
 
