@@ -28,9 +28,9 @@ function createMockApi(storageData: Record<string, unknown> = {}) {
     instrumentId: "test",
     permissions: [],
     storage: {
-      getProperty: mock(async <T = unknown>(key: string): Promise<T | null> => {
-        return (storageData[key] as T) ?? null;
-      }),
+      getProperty: mock(async (key: string) => {
+        return storageData[key] ?? null;
+      }) as InstrumentFrontendAPI["storage"]["getProperty"],
       setProperty: mock(async (key: string, value: unknown): Promise<void> => {
         storageData[key] = value;
       }),
@@ -82,6 +82,9 @@ function createMockApi(storageData: Record<string, unknown> = {}) {
       getSchema: mock(async () => []),
       getValues: mock(async () => ({} as any)),
       setValue: mock(async () => ({} as any)),
+    },
+    ui: {
+      renderMarkdown: mock((text: string) => text),
     },
     registerShortcut: mock(() => {}),
     emit: mock(() => {}),
