@@ -197,32 +197,27 @@ export function UIDiffRenderer(props: UIDiffRendererProps): JSX.Element {
 
   useEffect(() => { ensureDiffStyles(); }, []);
 
-  // Expanded state — controlled or uncontrolled
+  // Expanded state — controlled (Set prop) or uncontrolled (internal state)
+  const isControlled = expandedFilesProp instanceof Set;
+
   const [internalExpanded, setInternalExpanded] = useState<Set<string>>(() => {
-    if (expandedFilesProp === "all" || expandedFilesProp === undefined) {
-      return new Set(files.map((f) => f.path));
-    }
     if (expandedFilesProp === "none") return new Set();
+    // Default: expand all files (up to threshold)
+    if (expandedFilesProp === undefined || expandedFilesProp === "all") {
+      return files.length <= MAX_AUTO_EXPANDED_FILES
+        ? new Set(files.map((f) => f.path))
+        : new Set();
+    }
     return new Set(expandedFilesProp);
   });
 
-  const expanded = useMemo(() => {
-    if (expandedFilesProp instanceof Set) return expandedFilesProp;
-    if (expandedFilesProp === "all") return new Set(files.map((f) => f.path));
-    if (expandedFilesProp === "none") return new Set<string>();
-    // Uncontrolled — auto-expand if few files
-    return files.length <= MAX_AUTO_EXPANDED_FILES
-      ? new Set(files.map((f) => f.path))
-      : internalExpanded;
-  }, [expandedFilesProp, files, internalExpanded]);
+  const expanded = isControlled ? expandedFilesProp : internalExpanded;
 
   const toggleFile = useCallback(
     (filePath: string) => {
       const next = !expanded.has(filePath);
-      if (onToggleFile) {
-        onToggleFile(filePath, next);
-      }
-      if (!(expandedFilesProp instanceof Set)) {
+      onToggleFile?.(filePath, next);
+      if (!isControlled) {
         setInternalExpanded((prev) => {
           const s = new Set(prev);
           if (next) s.add(filePath);
@@ -231,7 +226,7 @@ export function UIDiffRenderer(props: UIDiffRendererProps): JSX.Element {
         });
       }
     },
-    [expanded, onToggleFile, expandedFilesProp]
+    [expanded, onToggleFile, isControlled]
   );
 
   // Group decorations
