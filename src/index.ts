@@ -97,6 +97,48 @@ export type {
   UIGroupTitle,
 } from "./ui/react.tsx";
 
+// Diff renderer
+export { UIDiffRenderer } from "./ui/diff/renderer.tsx";
+export type { UIDiffRendererProps } from "./ui/diff/renderer.tsx";
+
+// Diff parser & utilities
+export { parseDiff, countFileChanges, pairLinesForSplitView } from "./ui/diff/parse-diff.ts";
+
+// Diff hooks
+export { useDiffSelection } from "./ui/diff/hooks/use-diff-selection.ts";
+export type { DiffSelectionMode, UseDiffSelectionOptions, UseDiffSelectionReturn } from "./ui/diff/hooks/use-diff-selection.ts";
+export { useDiffComments } from "./ui/diff/hooks/use-diff-comments.ts";
+export type {
+  DiffComment,
+  DiffCommentThread,
+  UseDiffCommentsOptions,
+  UseDiffCommentsReturn,
+  ComposerRenderProps,
+} from "./ui/diff/hooks/use-diff-comments.ts";
+
+// Diff types
+export type {
+  DiffFile,
+  DiffHunk,
+  DiffLine,
+  DiffLineType,
+  DiffFileStatus,
+  DiffLineAddress,
+  DiffViewMode,
+  DiffSyntaxHighlighter,
+} from "./ui/diff/types.ts";
+export { lineAddress, lineAddressKey } from "./ui/diff/types.ts";
+
+// Diff addon types
+export type {
+  DiffAddon,
+  AnyDiffDecoration,
+  DiffLineClassDecoration,
+  DiffGutterDecoration,
+  DiffAfterLineDecoration,
+  DiffInlineDecoration,
+} from "./ui/diff/addon-types.ts";
+
 // Convenience wrapper that auto-injects renderMarkdown from the instrument API
 import React from "react";
 import { useInstrumentApi } from "./sdk/react.tsx";
