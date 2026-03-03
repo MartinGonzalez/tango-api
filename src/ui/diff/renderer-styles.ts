@@ -284,10 +284,10 @@ export const DIFF_STYLES = `
 /* Line numbers */
 
 .tui-root .tui-diff-line-no {
-  width: 48px;
-  min-width: 48px;
-  max-width: 48px;
-  padding: 0 8px;
+  width: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  padding: 0 6px 0 2px;
   text-align: right;
   color: var(--tui-text-secondary);
   user-select: none;
