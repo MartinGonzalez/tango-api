@@ -494,6 +494,7 @@ export function UITabs(props: {
   value?: string;
   initialValue?: string;
   onChange?: (value: string) => void;
+  rightActions?: React.ReactNode;
 }): JSX.Element {
   const initial = props.initialValue ?? props.value ?? props.tabs[0]?.value ?? "";
   const [internalValue, setInternalValue] = useState(initial);
@@ -519,20 +520,23 @@ export function UITabs(props: {
 
   return (
     <div className="tui-tabs">
-      <div className="tui-tabs-list" role="tablist">
-        {props.tabs.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            className={`tui-tabs-trigger${tab.value === value ? " is-active" : ""}`}
-            role="tab"
-            aria-selected={tab.value === value}
-            tabIndex={tab.value === value ? 0 : -1}
-            onClick={() => selectTab(tab.value)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="tui-tabs-header">
+        <div className="tui-tabs-list" role="tablist">
+          {props.tabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              className={`tui-tabs-trigger${tab.value === value ? " is-active" : ""}`}
+              role="tab"
+              aria-selected={tab.value === value}
+              tabIndex={tab.value === value ? 0 : -1}
+              onClick={() => selectTab(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        {props.rightActions ? <div className="tui-tabs-actions">{props.rightActions}</div> : null}
       </div>
       <div className="tui-tabs-panel" role="tabpanel">{selected?.content}</div>
     </div>

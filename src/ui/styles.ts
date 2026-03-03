@@ -759,6 +759,13 @@ export const UI_STYLES = `
   gap: 10px;
 }
 
+.tui-root .tui-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .tui-root .tui-tabs-list {
   display: inline-flex;
   align-items: center;
@@ -807,7 +814,7 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-tabs-panel {
-  padding: 12px;
+  padding: 0;
 }
 
 .tui-root .tui-dropdown-select {
@@ -1081,6 +1088,17 @@ export const UI_STYLES = `
   color: var(--tui-link-color, var(--tui-primary));
   filter: brightness(1.2);
   text-decoration: underline;
+}
+
+.tui-root .tui-markdown-body code {
+  font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
+  font-size: 0.9em;
+  background: #3A2929;
+  border: 1px solid #714545;
+  border-radius: var(--tui-radius-tight);
+  padding: 1px 5px;
+  color: #F28888;
+  white-space: nowrap;
 }
 
 .tui-root .tui-container {
