@@ -1210,7 +1210,7 @@ export const UI_STYLES = `
 
 .tui-root .tui-kv-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   font-size: 12px;
 }

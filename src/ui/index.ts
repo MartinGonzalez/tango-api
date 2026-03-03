@@ -17,6 +17,7 @@ export const Icon = {
   AI: "ai",
   Check: "check",
   Pause: "pause",
+  ExternalLink: "external-link",
 } as const;
 export type UIIconName = (typeof Icon)[keyof typeof Icon];
 export type UIIconPrimitive =
@@ -36,6 +37,8 @@ export type UIDOMIconButtonOptions = {
   icon: UIIconName | string | HTMLElement;
   label: string;
   title?: string;
+  href?: string;
+  openUrl?: (url: string) => void;
   variant?: UIIconButtonVariant;
   size?: UIIconButtonSize;
   active?: boolean;
@@ -91,6 +94,12 @@ const ICON_PRIMITIVES: Record<UIIconName, UIIconPrimitive[]> = {
   [Icon.Pause]: [
     { tag: "line", x1: 9, y1: 6, x2: 9, y2: 18 },
     { tag: "line", x1: 15, y1: 6, x2: 15, y2: 18 },
+  ],
+  [Icon.ExternalLink]: [
+    { tag: "path", d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" },
+    { tag: "line", x1: 15, y1: 3, x2: 21, y2: 3 },
+    { tag: "line", x1: 21, y1: 3, x2: 21, y2: 9 },
+    { tag: "line", x1: 10, y1: 14, x2: 21, y2: 3 },
   ],
 };
 
@@ -306,13 +315,16 @@ export function iconButton(opts: UIDOMIconButtonOptions): HTMLButtonElement {
     opts.icon.setAttribute("aria-hidden", "true");
     iconNode = opts.icon;
   }
+  const handleClick = opts.href && opts.openUrl
+    ? (() => { const openUrl = opts.openUrl!; const href = opts.href!; return () => { opts.onClick?.(); openUrl(href); }; })()
+    : opts.onClick;
   return el("button", {
     className: `tui-icon-btn tui-icon-btn-${variant} tui-icon-btn-${size}${opts.active ? " is-active" : ""}`,
     type: "button",
     disabled: Boolean(opts.disabled),
     ariaLabel: opts.label,
     title: opts.title ?? opts.label,
-    onClick: opts.onClick,
+    onClick: handleClick,
   }, [iconNode]);
 }
 

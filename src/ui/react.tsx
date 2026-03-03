@@ -174,12 +174,14 @@ export function UIIconButton(props: {
   icon: UIIconName | React.ReactNode;
   label: string;
   title?: string;
+  href?: string;
   variant?: UIIconButtonVariant;
   size?: UIIconButtonSize;
   active?: boolean;
   disabled?: boolean;
   onClick?: () => void;
 }): JSX.Element {
+  const api = useInstrumentApiOptional();
   const variant = props.variant ?? "ghost";
   const size = props.size ?? "sm";
   const iconNode = typeof props.icon === "string" && isUIIconName(props.icon)
@@ -189,6 +191,12 @@ export function UIIconButton(props: {
         {props.icon}
       </span>
     );
+  const handleClick = () => {
+    props.onClick?.();
+    if (props.href && api?.ui?.openUrl) {
+      api.ui.openUrl(props.href);
+    }
+  };
   return (
     <button
       type="button"
@@ -196,7 +204,7 @@ export function UIIconButton(props: {
       aria-label={props.label}
       title={props.title ?? props.label}
       disabled={props.disabled}
-      onClick={props.onClick}
+      onClick={handleClick}
     >
       {iconNode}
     </button>
