@@ -287,7 +287,7 @@ export const DIFF_STYLES = `
   width: 32px;
   min-width: 32px;
   max-width: 32px;
-  padding: 0 6px 0 2px;
+  padding: 0 6px 0 0;
   text-align: right;
   color: var(--tui-text-secondary);
   user-select: none;
