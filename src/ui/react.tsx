@@ -793,6 +793,57 @@ export function UIMarkdownRenderer(props: {
   );
 }
 
+function isExternalHref(href: string): boolean {
+  return /^https?:\/\//.test(href);
+}
+
+export function UILink(props: {
+  href: string;
+  label: string;
+  external?: boolean;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+}): JSX.Element {
+  const isExternal = props.external ?? isExternalHref(props.href);
+  return (
+    <a
+      className="tui-link"
+      href={props.href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      onClick={props.onClick}
+    >
+      {props.label}
+    </a>
+  );
+}
+
+export function UIInlineCode(props: {
+  code: string;
+}): JSX.Element {
+  return <code className="tui-inline-code">{props.code}</code>;
+}
+
+export function UIKeyValue(props: {
+  items: Array<{ label: string; value: React.ReactNode }>;
+  labelWidth?: string;
+}): JSX.Element {
+  return (
+    <div className="tui-kv">
+      {props.items.map((item, index) => (
+        <div className="tui-kv-row" key={index}>
+          <span
+            className="tui-kv-label"
+            style={props.labelWidth ? { width: props.labelWidth } : undefined}
+          >
+            {item.label}
+          </span>
+          <span className="tui-kv-value">{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export type {
   UIGroupItemMeta,
   UIIconButtonSize,

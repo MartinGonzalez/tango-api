@@ -81,6 +81,9 @@ export {
   UIGroupEmpty,
   UIGroupItem,
   UIMarkdownRenderer as UIMarkdownRendererBase,
+  UILink,
+  UIInlineCode,
+  UIKeyValue,
 } from "./ui/react.tsx";
 // UI React types
 export type {

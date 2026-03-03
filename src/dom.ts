@@ -5,6 +5,9 @@ import {
   dropdown as createUIDropdown,
   segmentedControl as createUISegmentedControl,
   tabs as createUITabs,
+  link as createUILink,
+  inlineCode as createUIInlineCode,
+  keyValue as createUIKeyValue,
 } from "./ui/index.ts";
 
 export { Icon } from "./ui/index.ts";
@@ -16,6 +19,9 @@ export const UIDOM = {
   UIDropdown: createUIDropdown,
   UISegmentedControl: createUISegmentedControl,
   UITabs: createUITabs,
+  UILink: createUILink,
+  UIInlineCode: createUIInlineCode,
+  UIKeyValue: createUIKeyValue,
 } as const;
 
 export type {

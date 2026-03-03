@@ -809,6 +809,55 @@ export function statusTone(opts: { label: string; tone?: BadgeTone }): HTMLEleme
   });
 }
 
+export function link(opts: {
+  href: string;
+  label: string;
+  external?: boolean;
+  onClick?: (event: Event) => void;
+}): HTMLAnchorElement {
+  const isExternal = opts.external ?? /^https?:\/\//.test(opts.href);
+  const node = el("a", {
+    className: "tui-link",
+    href: opts.href,
+    text: opts.label,
+  });
+  if (isExternal) {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  }
+  if (opts.onClick) {
+    node.addEventListener("click", opts.onClick);
+  }
+  return node;
+}
+
+export function inlineCode(opts: { code: string }): HTMLElement {
+  return el("code", {
+    className: "tui-inline-code",
+    text: opts.code,
+  });
+}
+
+export function keyValue(opts: {
+  items: Array<{ label: string; value: string | HTMLElement }>;
+  labelWidth?: string;
+}): HTMLElement {
+  const rows = opts.items.map((item) => {
+    const labelNode = el("span", {
+      className: "tui-kv-label",
+      text: item.label,
+    });
+    if (opts.labelWidth) {
+      labelNode.style.width = opts.labelWidth;
+    }
+    const valueNode = typeof item.value === "string"
+      ? el("span", { className: "tui-kv-value", text: item.value })
+      : el("span", { className: "tui-kv-value" }, [item.value]);
+    return el("div", { className: "tui-kv-row" }, [labelNode, valueNode]);
+  });
+  return el("div", { className: "tui-kv" }, rows);
+}
+
 export function selectionList(opts: {
   items: Array<{ value: string; title: string; subtitle?: string }>;
   selected: string[];

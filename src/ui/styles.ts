@@ -1074,6 +1074,67 @@ export const UI_STYLES = `
   padding: 16px 18px 18px;
 }
 
+.tui-root .tui-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tui-root .tui-kv-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.tui-root .tui-kv-label {
+  color: var(--tui-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.tui-root .tui-kv-value {
+  color: var(--tui-text);
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tui-root .tui-link {
+  color: var(--tui-blue);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.tui-root .tui-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.tui-root .tui-link:focus-visible {
+  outline: 2px solid var(--tui-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.tui-root .tui-inline-code {
+  font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--tui-radius-tight);
+  padding: 1px 5px;
+  color: var(--tui-text);
+  white-space: nowrap;
+}
+
 .tui-root .tui-markdown-raw {
   margin: 0;
   flex: 1;
