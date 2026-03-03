@@ -807,9 +807,6 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-tabs-panel {
-  border: 1px solid var(--tui-border);
-  border-radius: var(--tui-radius-panel);
-  background: var(--tui-bg-card);
   padding: 12px;
 }
 
