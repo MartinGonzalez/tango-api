@@ -18,6 +18,7 @@ import type {
   DiffInlineDecoration,
 } from "./addon-types.ts";
 import { DIFF_STYLE_ID, DIFF_STYLES } from "./renderer-styles.ts";
+import { fallbackHighlight } from "./syntax-highlight.ts";
 
 // --- Style injection ---
 
@@ -38,6 +39,12 @@ function ensureDiffStyles(): void {
 
 // --- Props ---
 
+export type FullFileContent = {
+  content: string;
+  truncated?: boolean;
+  isBinary?: boolean;
+};
+
 export type UIDiffRendererProps = {
   files: DiffFile[];
   viewMode?: DiffViewMode;
@@ -45,7 +52,14 @@ export type UIDiffRendererProps = {
   expandedFiles?: Set<string> | "all" | "none";
   onToggleFile?: (filePath: string, expanded: boolean) => void;
   onViewModeChange?: (mode: DiffViewMode) => void;
-  syntaxHighlighter?: DiffSyntaxHighlighter;
+  /**
+   * Syntax highlighter function. Receives raw content + file path, returns HTML.
+   * If omitted, a built-in keyword-based highlighter is used.
+   * Pass `null` to disable highlighting entirely.
+   */
+  syntaxHighlighter?: DiffSyntaxHighlighter | null;
+  /** Callback to load the full file content when "Show full file" is clicked. */
+  onRequestFullFile?: (filePath: string) => Promise<FullFileContent>;
   addons?: DiffAddon[];
   showToolbar?: boolean;
   compact?: boolean;
@@ -187,13 +201,19 @@ export function UIDiffRenderer(props: UIDiffRendererProps): JSX.Element {
     expandedFiles: expandedFilesProp,
     onToggleFile,
     onViewModeChange,
-    syntaxHighlighter,
+    syntaxHighlighter: syntaxHighlighterProp,
+    onRequestFullFile,
     addons = [],
     showToolbar = true,
     compact = false,
     className,
     lineRef,
   } = props;
+
+  // Resolve syntax highlighter: undefined = built-in, null = disabled, function = custom
+  const syntaxHighlighter = syntaxHighlighterProp === undefined
+    ? fallbackHighlight
+    : syntaxHighlighterProp ?? undefined;
 
   useEffect(() => { ensureDiffStyles(); }, []);
 
@@ -265,6 +285,7 @@ export function UIDiffRenderer(props: UIDiffRendererProps): JSX.Element {
           onToggle={() => toggleFile(file.path)}
           viewMode={viewMode}
           syntaxHighlighter={syntaxHighlighter}
+          onRequestFullFile={onRequestFullFile}
           decorationMap={decorationMap}
           lineHandlers={lineHandlers}
           hasGutter={hasGutter}
@@ -312,6 +333,12 @@ function DiffToolbar(props: {
 
 // --- File section ---
 
+type FullFileState = {
+  status: "loading" | "loaded" | "error";
+  content: string;
+  message: string;
+};
+
 function DiffFileSection(props: {
   file: DiffFile;
   isExpanded: boolean;
@@ -319,13 +346,14 @@ function DiffFileSection(props: {
   onToggle: () => void;
   viewMode: DiffViewMode;
   syntaxHighlighter?: DiffSyntaxHighlighter;
+  onRequestFullFile?: (filePath: string) => Promise<FullFileContent>;
   decorationMap: Map<string, GroupedDecorations>;
   lineHandlers: ReturnType<typeof collectLineEventHandlers>;
   hasGutter: boolean;
   compact: boolean;
   lineRef?: (address: DiffLineAddress, element: HTMLElement | null) => void;
 }): JSX.Element {
-  const { file, isExpanded, isActive, onToggle, compact } = props;
+  const { file, isExpanded, isActive, onToggle, onRequestFullFile, syntaxHighlighter, compact } = props;
   const { adds, dels } = useMemo(() => countFileChanges(file), [file]);
 
   const statusSymbol: Record<string, string> = {
@@ -336,6 +364,21 @@ function DiffFileSection(props: {
   };
 
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [fullFile, setFullFile] = useState<FullFileState | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
 
   // Scroll to active file on mount
   useEffect(() => {
@@ -344,34 +387,139 @@ function DiffFileSection(props: {
     }
   }, [isActive]);
 
+  const handleShowFullFile = useCallback(async () => {
+    setMenuOpen(false);
+    if (!onRequestFullFile) return;
+
+    if (fullFile) {
+      // Toggle off
+      setFullFile(null);
+      return;
+    }
+
+    setFullFile({ status: "loading", content: "", message: "Loading..." });
+    try {
+      const result = await onRequestFullFile(file.path);
+      if (result.isBinary) {
+        setFullFile({ status: "loaded", content: "", message: "Binary file" });
+      } else {
+        setFullFile({
+          status: "loaded",
+          content: result.content,
+          message: result.truncated ? "File truncated" : "",
+        });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load file";
+      setFullFile({ status: "error", content: "", message: msg });
+    }
+  }, [onRequestFullFile, file.path, fullFile]);
+
   return (
     <div
       ref={sectionRef}
       className={`tui-diff-file${isExpanded ? " expanded" : ""}${isActive ? " active" : ""}`}
     >
       {!compact && (
-        <div className="tui-diff-file-header" onClick={onToggle}>
-          <span className="tui-diff-file-chevron">{"\u25B6"}</span>
-          <span className={`tui-diff-file-status tui-diff-file-status-${file.status}`}>
-            {statusSymbol[file.status] ?? "\u2219"}
-          </span>
-          <span className="tui-diff-file-path">
-            {file.oldPath && file.status === "renamed"
-              ? `${file.oldPath} \u2192 ${file.path}`
-              : file.path}
-          </span>
-          <span className="tui-diff-file-delta">
-            {adds > 0 && <span className="tui-diff-delta-add">+{adds}</span>}
-            {dels > 0 && <span className="tui-diff-delta-del">-{dels}</span>}
-          </span>
-          {file.isBinary && <span className="tui-diff-file-binary">bin</span>}
+        <div className="tui-diff-file-header">
+          <div className="tui-diff-file-header-main" onClick={onToggle}>
+            <span className="tui-diff-file-chevron">{"\u25B6"}</span>
+            <span className={`tui-diff-file-status tui-diff-file-status-${file.status}`}>
+              {statusSymbol[file.status] ?? "\u2219"}
+            </span>
+            <span className="tui-diff-file-path">
+              {file.oldPath && file.status === "renamed"
+                ? `${file.oldPath} \u2192 ${file.path}`
+                : file.path}
+            </span>
+            <span className="tui-diff-file-delta">
+              {adds > 0 && <span className="tui-diff-delta-add">+{adds}</span>}
+              {dels > 0 && <span className="tui-diff-delta-del">-{dels}</span>}
+            </span>
+            {file.isBinary && <span className="tui-diff-file-binary">bin</span>}
+          </div>
+          {onRequestFullFile && (
+            <div className="tui-diff-file-menu" ref={menuRef}>
+              <button
+                type="button"
+                className="tui-diff-file-menu-btn"
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+                aria-label="File actions"
+              >
+                {"\u22EE"}
+              </button>
+              {menuOpen && (
+                <div className="tui-diff-file-dropdown">
+                  <button
+                    type="button"
+                    className="tui-diff-file-dropdown-item"
+                    onClick={(e) => { e.stopPropagation(); handleShowFullFile(); }}
+                  >
+                    {fullFile ? "Hide full file" : "Show full file"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       {(isExpanded || compact) && (
         <div className="tui-diff-file-body">
           <DiffFileBody {...props} />
+          {fullFile && (
+            <FullFileView state={fullFile} filePath={file.path} syntaxHighlighter={syntaxHighlighter} />
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Full file view ---
+
+function FullFileView(props: {
+  state: FullFileState;
+  filePath: string;
+  syntaxHighlighter?: DiffSyntaxHighlighter;
+}): JSX.Element {
+  const { state, filePath, syntaxHighlighter } = props;
+
+  if (state.status === "loading") {
+    return <div className="tui-diff-full-file-status">Loading full file...</div>;
+  }
+
+  if (state.status === "error") {
+    return <div className="tui-diff-full-file-status tui-diff-full-file-error">{state.message}</div>;
+  }
+
+  if (!state.content) {
+    return <div className="tui-diff-full-file-status">{state.message || "Empty file"}</div>;
+  }
+
+  const lines = state.content.split("\n");
+
+  return (
+    <div className="tui-diff-full-file">
+      <div className="tui-diff-full-file-header">
+        Full file
+        {state.message && <span className="tui-diff-full-file-note">{state.message}</span>}
+      </div>
+      <table className="tui-diff-table unified">
+        <tbody>
+          {lines.map((line, idx) => {
+            const lineNo = idx + 1;
+            const html = syntaxHighlighter
+              ? syntaxHighlighter(line || " ", filePath)
+              : escapeHtml(line || " ");
+            return (
+              <tr key={idx} className="tui-diff-line tui-diff-line-context">
+                <td className="tui-diff-line-no">{lineNo}</td>
+                <td className="tui-diff-line-content" dangerouslySetInnerHTML={{ __html: html }} />
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -444,13 +592,12 @@ function UnifiedHunk(props: {
   lineRef?: (address: DiffLineAddress, element: HTMLElement | null) => void;
 }): JSX.Element {
   const { hunk, filePath, syntaxHighlighter, decorationMap, lineHandlers, hasGutter, lineRef } = props;
-  const colSpan = hasGutter ? 4 : 3;
+  const colSpan = hasGutter ? 3 : 2;
 
   return (
     <>
       <tr className="tui-diff-hunk-header">
         {hasGutter && <td className="tui-diff-gutter" />}
-        <td className="tui-diff-line-no" />
         <td className="tui-diff-line-no" />
         <td className="tui-diff-line-content hunk-label">{hunk.header}</td>
       </tr>
@@ -517,11 +664,12 @@ function UnifiedHunk(props: {
                   ))}
                 </td>
               )}
-              <td className="tui-diff-line-no">
-                {line.oldLineNo != null ? line.oldLineNo : ""}
-              </td>
-              <td className="tui-diff-line-no">
-                {line.newLineNo != null ? line.newLineNo : ""}
+              <td className={`tui-diff-line-no tui-diff-line-no-${line.type}`}>
+                {line.type === "delete"
+                  ? line.oldLineNo
+                  : line.type === "add"
+                  ? line.newLineNo
+                  : line.newLineNo ?? line.oldLineNo}
               </td>
               <td
                 className="tui-diff-line-content"
@@ -655,7 +803,7 @@ function SplitHunk(props: {
                   ))}
                 </td>
               )}
-              <td className={`tui-diff-line-no ${leftTypeClass}`}>
+              <td className={`tui-diff-line-no ${leftTypeClass}${left ? ` tui-diff-line-no-${left.type}` : ""}`}>
                 {left?.oldLineNo != null ? left.oldLineNo : ""}
               </td>
               <td
@@ -663,7 +811,7 @@ function SplitHunk(props: {
                 dangerouslySetInnerHTML={left ? { __html: leftHtml } : undefined}
               />
               <td className="tui-diff-split-divider" />
-              <td className={`tui-diff-line-no ${rightTypeClass}`}>
+              <td className={`tui-diff-line-no ${rightTypeClass}${right ? ` tui-diff-line-no-${right.type}` : ""}`}>
                 {right?.newLineNo != null ? right.newLineNo : ""}
               </td>
               <td

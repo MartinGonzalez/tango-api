@@ -75,9 +75,7 @@ export const DIFF_STYLES = `
 .tui-root .tui-diff-file-header {
   display: flex;
   align-items: center;
-  gap: 8px;
   padding: 6px 10px;
-  cursor: pointer;
   user-select: none;
   font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: 12px;
@@ -90,6 +88,15 @@ export const DIFF_STYLES = `
   background: var(--tui-bg-hover);
 }
 
+.tui-root .tui-diff-file-header-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
 .tui-root .tui-diff-file-chevron {
   font-size: 10px;
   color: var(--tui-text-secondary);
@@ -97,16 +104,76 @@ export const DIFF_STYLES = `
   flex-shrink: 0;
 }
 
-.tui-root .tui-diff-file.expanded > .tui-diff-file-header > .tui-diff-file-chevron {
+.tui-root .tui-diff-file.expanded > .tui-diff-file-header .tui-diff-file-chevron {
   transform: rotate(90deg);
 }
 
 .tui-root .tui-diff-file-status {
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 15px;
   flex-shrink: 0;
-  width: 14px;
+  width: 18px;
   text-align: center;
+  line-height: 1;
+}
+
+/* Three-dot menu */
+
+.tui-root .tui-diff-file-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tui-root .tui-diff-file-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--tui-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: var(--tui-radius-tight);
+  transition: background 0.1s, color 0.1s;
+  line-height: 1;
+}
+
+.tui-root .tui-diff-file-menu-btn:hover {
+  background: var(--tui-bg-hover);
+  color: var(--tui-text);
+}
+
+.tui-root .tui-diff-file-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 140px;
+  margin-top: 2px;
+  padding: 4px 0;
+  background: var(--tui-dropdown-bg);
+  border: 1px solid var(--tui-dropdown-border);
+  border-radius: var(--tui-radius-inner);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tui-root .tui-diff-file-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--tui-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tui-root .tui-diff-file-dropdown-item:hover {
+  background: var(--tui-dropdown-hover-bg);
 }
 
 .tui-root .tui-diff-file-status-added { color: var(--tui-green); }
@@ -229,6 +296,16 @@ export const DIFF_STYLES = `
   vertical-align: top;
 }
 
+.tui-root .tui-diff-line-no.tui-diff-line-no-add {
+  color: #34d399;
+  opacity: 1;
+}
+
+.tui-root .tui-diff-line-no.tui-diff-line-no-delete {
+  color: #f87171;
+  opacity: 1;
+}
+
 /* Line content */
 
 .tui-root .tui-diff-line-content {
@@ -290,6 +367,41 @@ export const DIFF_STYLES = `
 
 .tui-root .tui-diff.compact .tui-diff-gutter {
   display: none;
+}
+
+/* Full file view */
+
+.tui-root .tui-diff-full-file {
+  border-top: 1px solid var(--tui-border);
+}
+
+.tui-root .tui-diff-full-file-header {
+  padding: 6px 10px;
+  font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tui-text-secondary);
+  background: var(--tui-bg-secondary);
+  border-bottom: 1px solid var(--tui-border);
+}
+
+.tui-root .tui-diff-full-file-note {
+  margin-left: 8px;
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.tui-root .tui-diff-full-file-status {
+  padding: 10px;
+  text-align: center;
+  color: var(--tui-text-secondary);
+  font-size: 12px;
+  border-top: 1px solid var(--tui-border);
+}
+
+.tui-root .tui-diff-full-file-error {
+  color: var(--tui-red);
 }
 
 /* Syntax highlight tokens (fallback) */

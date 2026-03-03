@@ -99,10 +99,13 @@ export type {
 
 // Diff renderer
 export { UIDiffRenderer } from "./ui/diff/renderer.tsx";
-export type { UIDiffRendererProps } from "./ui/diff/renderer.tsx";
+export type { UIDiffRendererProps, FullFileContent } from "./ui/diff/renderer.tsx";
 
 // Diff parser & utilities
 export { parseDiff, countFileChanges, pairLinesForSplitView } from "./ui/diff/parse-diff.ts";
+
+// Diff syntax highlighting
+export { fallbackHighlight, languageFromFilePath } from "./ui/diff/syntax-highlight.ts";
 
 // Diff hooks
 export { useDiffSelection } from "./ui/diff/hooks/use-diff-selection.ts";
