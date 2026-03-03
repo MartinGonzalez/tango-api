@@ -730,6 +730,28 @@ export function UIGroupItem(props: {
   );
 }
 
+function enhanceCodeBlocks(container: HTMLElement): void {
+  const pres = container.querySelectorAll("pre.code-block");
+  for (const pre of pres) {
+    if (pre.querySelector(".tui-code-copy")) continue;
+    const code = pre.querySelector("code");
+    if (!code) continue;
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "tui-code-copy";
+    copyBtn.textContent = "Copy";
+    copyBtn.addEventListener("click", () => {
+      const text = code.textContent ?? "";
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => { copyBtn.textContent = "Copy"; }, 1500);
+      });
+    });
+    pre.appendChild(copyBtn);
+  }
+}
+
 export function UIMarkdownRenderer(props: {
   content: string;
   renderMarkdown: (text: string) => string;
@@ -746,6 +768,7 @@ export function UIMarkdownRenderer(props: {
   useEffect(() => {
     if (!showRaw && bodyRef.current) {
       bodyRef.current.innerHTML = html;
+      enhanceCodeBlocks(bodyRef.current);
     }
   }, [html, showRaw]);
 

@@ -1090,7 +1090,7 @@ export const UI_STYLES = `
   text-decoration: underline;
 }
 
-.tui-root .tui-markdown-body code {
+.tui-root .tui-markdown-body code:not(.code-block code) {
   font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
   font-size: 0.9em;
   background: #3A2929;
@@ -1100,6 +1100,91 @@ export const UI_STYLES = `
   color: #F28888;
   white-space: nowrap;
 }
+
+.tui-root .tui-markdown-body .code-block {
+  --code-token-comment: #8f8d88;
+  --code-token-string: #9fd379;
+  --code-token-number: #dfb676;
+  --code-token-keyword: #8db8ff;
+  --code-token-function: #89c9f4;
+  --code-token-punctuation: #cfcdc6;
+  --code-token-property: #9ec2ff;
+  --code-token-variable: #e3c89b;
+  --code-token-builtin: #90c2ff;
+  position: relative;
+  background: #1a1a1a;
+  border: 1px solid var(--tui-border);
+  border-radius: var(--tui-radius-panel);
+  padding: 14px 16px;
+  margin: 8px 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 58vh;
+}
+
+.tui-root .tui-markdown-body .code-block.has-language {
+  padding-top: 36px;
+}
+
+.tui-root .tui-markdown-body .code-block .code-block-lang {
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  color: #9a9994;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+
+.tui-root .tui-markdown-body .code-block code {
+  display: block;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  color: #f0efeb;
+  white-space: pre;
+  font-size: 13px;
+  line-height: 1.62;
+  font-family: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-copy {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  color: var(--tui-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--tui-radius-tight);
+}
+
+.tui-root .tui-markdown-body .code-block .tui-code-copy:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--tui-text);
+}
+
+.tui-root .tui-markdown-body .code-block .token.comment { color: var(--code-token-comment); }
+.tui-root .tui-markdown-body .code-block .token.string { color: var(--code-token-string); }
+.tui-root .tui-markdown-body .code-block .token.number,
+.tui-root .tui-markdown-body .code-block .token.boolean { color: var(--code-token-number); }
+.tui-root .tui-markdown-body .code-block .token.keyword,
+.tui-root .tui-markdown-body .code-block .token.operator { color: var(--code-token-keyword); }
+.tui-root .tui-markdown-body .code-block .token.function,
+.tui-root .tui-markdown-body .code-block .token.class-name { color: var(--code-token-function); }
+.tui-root .tui-markdown-body .code-block .token.punctuation { color: var(--code-token-punctuation); }
+.tui-root .tui-markdown-body .code-block .token.property,
+.tui-root .tui-markdown-body .code-block .token.attr-name,
+.tui-root .tui-markdown-body .code-block .token.parameter { color: var(--code-token-property); }
+.tui-root .tui-markdown-body .code-block .token.variable,
+.tui-root .tui-markdown-body .code-block .token.constant,
+.tui-root .tui-markdown-body .code-block .token.symbol { color: var(--code-token-variable); }
+.tui-root .tui-markdown-body .code-block .token.builtin { color: var(--code-token-builtin); }
 
 .tui-root .tui-container {
   background: #181818;
