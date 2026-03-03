@@ -843,6 +843,14 @@ export function link(opts: {
   return node;
 }
 
+export function container(opts: {
+  children: HTMLElement[];
+  className?: string;
+}): HTMLElement {
+  const classes = ["tui-container", opts.className].filter(Boolean).join(" ");
+  return el("div", { className: classes }, opts.children);
+}
+
 export function inlineCode(opts: { code: string }): HTMLElement {
   return el("code", {
     className: "tui-inline-code",

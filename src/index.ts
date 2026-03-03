@@ -83,6 +83,7 @@ export {
   UIGroupItem,
   UIMarkdownRenderer as UIMarkdownRendererBase,
   UILink,
+  UIContainer,
   UIInlineCode,
   UIKeyValue,
 } from "./ui/react.tsx";

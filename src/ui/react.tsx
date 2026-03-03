@@ -851,6 +851,14 @@ export function UILink(props: {
   );
 }
 
+export function UIContainer(props: {
+  children?: React.ReactNode;
+  className?: string;
+}): JSX.Element {
+  const classes = ["tui-container", props.className].filter(Boolean).join(" ");
+  return <div className={classes}>{props.children}</div>;
+}
+
 export function UIInlineCode(props: {
   code: string;
 }): JSX.Element {

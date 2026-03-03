@@ -1086,6 +1086,13 @@ export const UI_STYLES = `
   text-decoration: underline;
 }
 
+.tui-root .tui-container {
+  background: #181818;
+  border: 1px solid #323232;
+  border-radius: 12px;
+  padding: 16px;
+}
+
 .tui-root .tui-kv {
   display: flex;
   flex-direction: column;

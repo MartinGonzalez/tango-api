@@ -6,6 +6,7 @@ import {
   segmentedControl as createUISegmentedControl,
   tabs as createUITabs,
   link as createUILink,
+  container as createUIContainer,
   inlineCode as createUIInlineCode,
   keyValue as createUIKeyValue,
 } from "./ui/index.ts";
@@ -20,6 +21,7 @@ export const UIDOM = {
   UISegmentedControl: createUISegmentedControl,
   UITabs: createUITabs,
   UILink: createUILink,
+  UIContainer: createUIContainer,
   UIInlineCode: createUIInlineCode,
   UIKeyValue: createUIKeyValue,
 } as const;
