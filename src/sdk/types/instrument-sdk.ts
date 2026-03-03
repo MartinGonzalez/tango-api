@@ -156,6 +156,7 @@ export type InstrumentSettingsAPI = {
 
 export type UIAPI = {
   renderMarkdown: (text: string) => string;
+  openUrl: (url: string) => void;
 };
 
 export type InstrumentFrontendAPI = {

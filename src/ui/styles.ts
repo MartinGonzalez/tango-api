@@ -1071,6 +1071,7 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding: 16px 18px 18px;
 }
 
 .tui-root .tui-kv {
@@ -1140,6 +1141,7 @@ export const UI_STYLES = `
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding: 16px 18px 18px;
   font-family: var(--font-mono, "SF Mono", "Fira Code", "Cascadia Code", monospace);
   font-size: 12px;
   line-height: 1.6;

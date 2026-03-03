@@ -16,6 +16,7 @@ import {
   getIconPrimitives,
   isUIIconName,
 } from "./index.ts";
+import { useInstrumentApiOptional } from "../sdk/react.tsx";
 
 type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger";
 export const Icon = TangoIcons;
@@ -804,8 +805,18 @@ export function UILink(props: {
   external?: boolean;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }): JSX.Element {
+  const api = useInstrumentApiOptional();
   const isExternal = props.external ?? isExternalHref(props.href);
   const style = props.color ? { "--tui-link-color": props.color } as React.CSSProperties : undefined;
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    props.onClick?.(e);
+    if (!e.defaultPrevented && isExternal && api?.ui?.openUrl) {
+      e.preventDefault();
+      api.ui.openUrl(props.href);
+    }
+  };
+
   return (
     <a
       className="tui-link"
@@ -813,7 +824,7 @@ export function UILink(props: {
       style={style}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      onClick={props.onClick}
+      onClick={handleClick}
     >
       {props.label}
     </a>

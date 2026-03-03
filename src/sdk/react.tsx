@@ -48,6 +48,10 @@ export function useInstrumentApi(): InstrumentFrontendAPI {
   return api;
 }
 
+export function useInstrumentApiOptional(): InstrumentFrontendAPI | null {
+  return useContext(InstrumentApiContext);
+}
+
 export function useHostEvent<E extends keyof HostEventMap>(
   event: E,
   handler: (payload: HostEventMap[E]) => void | Promise<void>

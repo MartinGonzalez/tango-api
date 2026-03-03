@@ -40,6 +40,7 @@ export {
   reactPanel,
   InstrumentApiProvider,
   useInstrumentApi,
+  useInstrumentApiOptional,
   useHostEvent,
   usePanelVisibility,
   useInstrumentAction,

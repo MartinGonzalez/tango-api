@@ -161,7 +161,7 @@ Inline monospace code token. Sits within text flow (unlike UIBadge which is stan
 
 ### UILink
 
-Styled hyperlink. Auto-detects external URLs and opens them in a new tab.
+Styled hyperlink. Auto-detects external URLs and opens them in the system browser via `api.ui.openUrl()`. When used inside an `InstrumentApiProvider`, external link clicks are intercepted and routed through the host — no manual wiring needed.
 
 ```tsx
 <UILink href="https://jira.com/TICKET-123" label="TICKET-123" />

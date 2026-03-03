@@ -85,6 +85,7 @@ function createMockApi(storageData: Record<string, unknown> = {}) {
     },
     ui: {
       renderMarkdown: mock((text: string) => text),
+      openUrl: mock(() => {}),
     },
     registerShortcut: mock(() => {}),
     emit: mock(() => {}),

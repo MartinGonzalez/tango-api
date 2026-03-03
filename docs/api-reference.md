@@ -14,6 +14,19 @@ const api = useInstrumentApi();
 
 The returned `api` object gives access to: `storage`, `sessions`, `stages`, `connectors`, `events`, `actions`, `settings`, `ui`, `emit`, and `registerShortcut`.
 
+### useInstrumentApiOptional()
+
+Same as `useInstrumentApi()` but returns `null` instead of throwing when used outside an `InstrumentApiProvider`. Useful for components that need to work both inside and outside the provider tree.
+
+```tsx
+import { useInstrumentApiOptional } from "tango-api";
+
+const api = useInstrumentApiOptional();
+if (api) {
+  api.ui.openUrl("https://example.com");
+}
+```
+
 ### useHostEvent(eventId, callback)
 
 Subscribe to host events. **Always wrap the callback in `useCallback`** to avoid re-subscriptions on every render.
@@ -385,4 +398,28 @@ export default defineReactInstrument({
     first: MainComponent,
   },
 });
+```
+
+## UI API
+
+Accessed via `useInstrumentApi().ui`.
+
+### openUrl(url)
+
+Opens a URL in the system browser. Use this instead of `window.open()` — instrument webviews cannot navigate directly.
+
+```tsx
+const api = useInstrumentApi();
+api.ui.openUrl("https://github.com/org/repo");
+```
+
+`UILink` calls this automatically for external links when rendered inside an `InstrumentApiProvider`.
+
+### renderMarkdown(text)
+
+Renders markdown text to HTML string.
+
+```tsx
+const api = useInstrumentApi();
+const html = api.ui.renderMarkdown("**bold** text");
 ```

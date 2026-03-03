@@ -814,6 +814,7 @@ export function link(opts: {
   label: string;
   color?: string;
   external?: boolean;
+  openUrl?: (url: string) => void;
   onClick?: (event: Event) => void;
 }): HTMLAnchorElement {
   const isExternal = opts.external ?? /^https?:\/\//.test(opts.href);
@@ -831,6 +832,13 @@ export function link(opts: {
   }
   if (opts.onClick) {
     node.addEventListener("click", opts.onClick);
+  }
+  if (isExternal && opts.openUrl) {
+    const openUrl = opts.openUrl;
+    node.addEventListener("click", (e) => {
+      e.preventDefault();
+      openUrl(opts.href);
+    });
   }
   return node;
 }
