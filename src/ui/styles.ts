@@ -257,6 +257,22 @@ export const UI_STYLES = `
   color: #fecaca;
 }
 
+.tui-root .tui-btn-success {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+}
+
+.tui-root .tui-btn-success:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.22);
+  color: #a7f3d0;
+}
+
+.tui-root .tui-btn-success:active:not(:disabled) {
+  background: rgba(16, 185, 129, 0.32);
+  color: #a7f3d0;
+}
+
 .tui-root .tui-input,
 .tui-root .tui-textarea,
 .tui-root .tui-select {

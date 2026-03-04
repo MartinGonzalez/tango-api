@@ -2,7 +2,7 @@ import { el, appendChildren } from "./dom.ts";
 export { UI_STYLE_ID, UI_STYLES } from "./styles.ts";
 import { UI_STYLE_ID, UI_STYLES } from "./styles.ts";
 
-export type UIButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type UIButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 export type UIButtonSize = "sm" | "md";
 export type UIIconButtonVariant = "ghost" | "secondary";
 export type UIIconButtonSize = "sm" | "md";
