@@ -57,6 +57,18 @@ type ComposerState = {
   replyThreadId: string | null;
 };
 
+// --- Helpers ---
+
+function formatCommentDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const day = d.getDate();
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${month} at ${hours}:${mins}`;
+}
+
 // --- Default renderers ---
 
 function DefaultThreadCard(props: {
@@ -64,62 +76,147 @@ function DefaultThreadCard(props: {
   onReply?: () => void;
 }): JSX.Element {
   const { thread, onReply } = props;
-  const style: React.CSSProperties = {
+  const [expanded, setExpanded] = useState(true);
+  const side = thread.address.side === "old" ? "L" : "R";
+  const count = thread.comments.length;
+  const countLabel = `${count} comment${count !== 1 ? "s" : ""}`;
+
+  const containerStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
-    gap: 6,
     fontSize: 12,
+    border: "1px solid var(--tui-border)",
+    borderRadius: "var(--tui-radius-tight)",
+    overflow: "hidden",
   };
-  const commentStyle: React.CSSProperties = {
+
+  const headerStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "6px 10px",
+    background: "var(--tui-bg-card)",
+    cursor: "pointer",
+    userSelect: "none",
+  };
+
+  const headerLeftStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    color: "var(--tui-text-secondary)",
+    fontSize: 11,
+  };
+
+  const chevronStyle: React.CSSProperties = {
+    display: "inline-block",
+    fontSize: 9,
+    transition: "transform 0.15s",
+    transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
+  };
+
+  const countStyle: React.CSSProperties = {
+    color: "var(--tui-text-secondary)",
+    fontSize: 11,
+  };
+
+  const bodyStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
-    gap: 2,
+    gap: 0,
   };
+
+  const commentCardStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    padding: "10px 12px",
+    borderTop: "1px solid var(--tui-border)",
+  };
+
+  const authorRowStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 8,
+  };
+
   const authorStyle: React.CSSProperties = {
     fontWeight: 600,
-    fontSize: 11,
+    fontSize: 12,
     color: "var(--tui-text)",
   };
-  const bodyStyle: React.CSSProperties = {
+
+  const dateStyle: React.CSSProperties = {
+    fontSize: 11,
     color: "var(--tui-text-secondary)",
+  };
+
+  const textStyle: React.CSSProperties = {
+    color: "var(--tui-text)",
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
+    fontSize: 12,
+    lineHeight: 1.5,
   };
-  const resolvedStyle: React.CSSProperties = {
-    fontSize: 10,
-    color: "var(--tui-text-secondary)",
-    fontStyle: "italic",
-  };
+
   const replyBtnStyle: React.CSSProperties = {
-    padding: "2px 8px",
+    padding: "4px 12px",
     border: "1px solid var(--tui-border)",
     borderRadius: "var(--tui-radius-tight)",
     background: "transparent",
-    color: "var(--tui-text-secondary)",
-    fontSize: 11,
+    color: "var(--tui-text)",
+    fontSize: 12,
     cursor: "pointer",
     alignSelf: "flex-start",
-    marginTop: 2,
   };
 
-  return React.createElement("div", { style },
-    thread.isResolved && React.createElement("span", { style: resolvedStyle }, "Resolved"),
-    ...thread.comments.map((c) =>
-      React.createElement("div", { key: c.id, style: commentStyle },
-        React.createElement("span", { style: authorStyle }, c.authorLogin),
-        c.bodyHtml
-          ? React.createElement("div", {
-              style: bodyStyle,
-              dangerouslySetInnerHTML: { __html: c.bodyHtml },
-            })
-          : React.createElement("span", { style: bodyStyle }, c.body)
-      )
+  const resolvedBadgeStyle: React.CSSProperties = {
+    fontSize: 10,
+    color: "var(--tui-text-secondary)",
+    fontStyle: "italic",
+    marginLeft: 6,
+  };
+
+  return React.createElement("div", { style: containerStyle },
+    // Header
+    React.createElement("div", {
+      style: headerStyle,
+      onClick: () => setExpanded((v) => !v),
+    },
+      React.createElement("div", { style: headerLeftStyle },
+        React.createElement("span", { style: chevronStyle }, "\u25B6"),
+        React.createElement("span", null,
+          `Comment on line ${side}${thread.address.lineNumber}`
+        ),
+        thread.isResolved && React.createElement("span", { style: resolvedBadgeStyle }, "Resolved"),
+      ),
+      React.createElement("span", { style: countStyle }, countLabel),
     ),
-    onReply && React.createElement("button", {
-      type: "button",
-      style: replyBtnStyle,
-      onClick: onReply,
-    }, "Reply"),
+    // Expanded body
+    expanded && React.createElement("div", { style: bodyStyle },
+      ...thread.comments.map((c) =>
+        React.createElement("div", { key: c.id, style: commentCardStyle },
+          React.createElement("div", { style: authorRowStyle },
+            React.createElement("span", { style: authorStyle }, `@${c.authorLogin}`),
+            React.createElement("span", { style: dateStyle }, formatCommentDate(c.createdAt)),
+          ),
+          c.bodyHtml
+            ? React.createElement("div", {
+                style: textStyle,
+                dangerouslySetInnerHTML: { __html: c.bodyHtml },
+              })
+            : React.createElement("div", { style: textStyle }, c.body),
+        )
+      ),
+      // Reply button
+      onReply && React.createElement("div", { style: { padding: "8px 12px", borderTop: "1px solid var(--tui-border)" } },
+        React.createElement("button", {
+          type: "button",
+          style: replyBtnStyle,
+          onClick: onReply,
+        }, "Reply"),
+      ),
+    ),
   );
 }
 
