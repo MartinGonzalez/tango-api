@@ -90,7 +90,7 @@ function DefaultThreadCard(props: {
   // Use native <details> for collapse — matches tango-app behavior
   return React.createElement("details", {
     className: "tui-diff-thread-card",
-    open: true,
+    open: !thread.isResolved,
   },
     React.createElement("summary", { className: "tui-diff-thread-card-head" },
       React.createElement("span", { className: "tui-diff-thread-card-head-left" },
