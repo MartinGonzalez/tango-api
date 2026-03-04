@@ -526,7 +526,8 @@ export const DIFF_STYLES = `
 .tui-root .tui-diff-thread-reply {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 10px 12px;
-  display: grid;
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
 }
 

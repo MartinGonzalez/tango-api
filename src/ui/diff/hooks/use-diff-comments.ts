@@ -25,12 +25,19 @@ export type DiffCommentThread = {
   isResolved?: boolean;
 };
 
+export type ThreadCardAction = {
+  label: string;
+  onClick: () => void;
+};
+
 export type UseDiffCommentsOptions = {
   threads: DiffCommentThread[];
   onCreateComment?: (address: DiffLineAddress, body: string) => Promise<void>;
   onReplyThread?: (threadId: string, body: string) => Promise<void>;
+  onResolveThread?: (threadId: string) => Promise<void>;
+  onUnresolveThread?: (threadId: string) => Promise<void>;
   /** Render a comment thread card. If omitted, a default renderer is used. */
-  renderThread?: (thread: DiffCommentThread, onReply: () => void) => React.ReactNode;
+  renderThread?: (thread: DiffCommentThread, actions: ThreadCardAction[]) => React.ReactNode;
   /** Render the comment composer UI. If omitted, a default renderer is used. */
   renderComposer?: (props: ComposerRenderProps) => React.ReactNode;
 };
@@ -73,9 +80,9 @@ function formatCommentDate(iso: string): string {
 
 function DefaultThreadCard(props: {
   thread: DiffCommentThread;
-  onReply?: () => void;
+  actions: ThreadCardAction[];
 }): JSX.Element {
-  const { thread, onReply } = props;
+  const { thread, actions } = props;
   const side = thread.address.side === "old" ? "L" : "R";
   const count = thread.comments.length;
   const countLabel = `${count} comment${count !== 1 ? "s" : ""}`;
@@ -113,12 +120,15 @@ function DefaultThreadCard(props: {
           : React.createElement("div", { className: "tui-diff-thread-comment-body" }, c.body),
       )
     ),
-    onReply && React.createElement("div", { className: "tui-diff-thread-reply" },
-      React.createElement("button", {
-        type: "button",
-        className: "tui-diff-thread-reply-trigger",
-        onClick: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onReply(); },
-      }, "Reply"),
+    actions.length > 0 && React.createElement("div", { className: "tui-diff-thread-reply" },
+      ...actions.map((action) =>
+        React.createElement("button", {
+          key: action.label,
+          type: "button",
+          className: "tui-diff-thread-reply-trigger",
+          onClick: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); action.onClick(); },
+        }, action.label)
+      ),
     ),
   );
 }
@@ -186,6 +196,8 @@ export function useDiffComments(
     threads,
     onCreateComment,
     onReplyThread,
+    onResolveThread,
+    onUnresolveThread,
     renderThread: customRenderThread,
     renderComposer: customRenderComposer,
   } = options;
@@ -199,6 +211,12 @@ export function useDiffComments(
 
   const onReplyThreadRef = useRef(onReplyThread);
   onReplyThreadRef.current = onReplyThread;
+
+  const onResolveThreadRef = useRef(onResolveThread);
+  onResolveThreadRef.current = onResolveThread;
+
+  const onUnresolveThreadRef = useRef(onUnresolveThread);
+  onUnresolveThreadRef.current = onUnresolveThread;
 
   const openComposer = useCallback((address: DiffLineAddress) => {
     setComposer({ address, replyThreadId: null });
@@ -248,13 +266,37 @@ export function useDiffComments(
     return map;
   }, [threads]);
 
+  // Build actions for each thread based on provided callbacks
+  const buildThreadActions = useCallback((thread: DiffCommentThread): ThreadCardAction[] => {
+    const actions: ThreadCardAction[] = [];
+
+    if (onReplyThreadRef.current) {
+      actions.push({
+        label: "Reply",
+        onClick: () => openReplyComposer(thread.id, thread.address),
+      });
+    }
+
+    if (thread.isResolved && onUnresolveThreadRef.current) {
+      actions.push({
+        label: "Unresolve",
+        onClick: () => onUnresolveThreadRef.current!(thread.id),
+      });
+    } else if (!thread.isResolved && onResolveThreadRef.current) {
+      actions.push({
+        label: "Resolve",
+        onClick: () => onResolveThreadRef.current!(thread.id),
+      });
+    }
+
+    return actions;
+  }, [openReplyComposer]);
+
   const addon: DiffAddon = useMemo(() => {
     const decorations: (DiffGutterDecoration | DiffAfterLineDecoration | DiffLineClassDecoration)[] = [];
 
     // Thread decorations
     for (const thread of threads) {
-      const addrKey = lineAddressKey(thread.address);
-
       // Gutter icon
       decorations.push({
         address: thread.address,
@@ -265,13 +307,11 @@ export function useDiffComments(
       });
 
       // After-line thread card wrapped in bubble
-      const onReply = onReplyThreadRef.current
-        ? () => openReplyComposer(thread.id, thread.address)
-        : undefined;
+      const actions = buildThreadActions(thread);
 
       const threadCard = customRenderThread
-        ? customRenderThread(thread, onReply ?? (() => {}))
-        : React.createElement(DefaultThreadCard, { thread, onReply, key: thread.id });
+        ? customRenderThread(thread, actions)
+        : React.createElement(DefaultThreadCard, { thread, actions, key: thread.id });
 
       const threadContent = React.createElement("div", {
         className: "tui-diff-thread-bubble",
@@ -348,6 +388,7 @@ export function useDiffComments(
     closeComposer,
     openComposer,
     openReplyComposer,
+    buildThreadActions,
     customRenderThread,
     customRenderComposer,
   ]);

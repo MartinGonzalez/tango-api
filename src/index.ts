@@ -117,6 +117,7 @@ export type {
   UseDiffCommentsOptions,
   UseDiffCommentsReturn,
   ComposerRenderProps,
+  ThreadCardAction,
 } from "./ui/diff/hooks/use-diff-comments.ts";
 
 // Diff types
