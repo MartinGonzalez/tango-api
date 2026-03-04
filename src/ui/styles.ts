@@ -49,8 +49,7 @@ export const UI_STYLES = `
 
 .tui-root .tui-footer {
   flex-shrink: 0;
-  border-top: 1px solid var(--tui-border);
-  padding: 10px 16px;
+  padding: 12px 16px 16px;
   background: var(--tui-bg);
 }
 
