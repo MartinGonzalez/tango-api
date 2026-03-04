@@ -113,6 +113,10 @@ export const UI_STYLES = `
   font-weight: 600;
 }
 
+.tui-root .tui-btn-full {
+  width: 100%;
+}
+
 .tui-root .tui-btn-icon {
   display: inline-flex;
   align-items: center;

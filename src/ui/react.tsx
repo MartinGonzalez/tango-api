@@ -144,10 +144,12 @@ export function UIButton(props: {
   variant?: UIButtonVariant;
   size?: UIButtonSize;
   disabled?: boolean;
+  fullWidth?: boolean;
   onClick?: () => void;
 }): JSX.Element {
   const variant = props.variant ?? "secondary";
   const size = props.size ?? "md";
+  const classes = `tui-btn tui-btn-${variant} tui-btn-${size}${props.fullWidth ? " tui-btn-full" : ""}`;
   const iconNode = typeof props.icon === "string" && isUIIconName(props.icon)
     ? <UIIcon name={props.icon} className="tui-btn-icon" />
     : props.icon
@@ -160,7 +162,7 @@ export function UIButton(props: {
   return (
     <button
       type="button"
-      className={`tui-btn tui-btn-${variant} tui-btn-${size}`}
+      className={classes}
       disabled={props.disabled}
       onClick={props.onClick}
     >
