@@ -3,10 +3,10 @@ import type { DiffLineAddress } from "../types.ts";
 import { lineAddressKey } from "../types.ts";
 import type {
   DiffAddon,
-  DiffGutterDecoration,
   DiffAfterLineDecoration,
   DiffLineClassDecoration,
 } from "../addon-types.ts";
+import { useInstrumentApi } from "../../../sdk/react.tsx";
 
 // --- Public types ---
 
@@ -15,7 +15,6 @@ export type DiffComment = {
   authorLogin: string;
   body: string;
   createdAt: string;
-  bodyHtml?: string;
 };
 
 export type DiffCommentThread = {
@@ -83,6 +82,7 @@ function DefaultThreadCard(props: {
   actions: ThreadCardAction[];
 }): JSX.Element {
   const { thread, actions } = props;
+  const api = useInstrumentApi();
   const side = thread.address.side === "old" ? "L" : "R";
   const count = thread.comments.length;
   const countLabel = `${count} comment${count !== 1 ? "s" : ""}`;
@@ -112,12 +112,10 @@ function DefaultThreadCard(props: {
           React.createElement("span", { className: "tui-diff-thread-comment-author" }, `@${c.authorLogin}`),
           React.createElement("span", { className: "tui-diff-thread-comment-time" }, formatCommentDate(c.createdAt)),
         ),
-        c.bodyHtml
-          ? React.createElement("div", {
-              className: "tui-diff-thread-comment-body",
-              dangerouslySetInnerHTML: { __html: c.bodyHtml },
-            })
-          : React.createElement("div", { className: "tui-diff-thread-comment-body" }, c.body),
+        React.createElement("div", {
+          className: "tui-diff-thread-comment-body tui-markdown-body",
+          dangerouslySetInnerHTML: { __html: api.ui.renderMarkdown(c.body) },
+        }),
       )
     ),
     actions.length > 0 && React.createElement("div", { className: "tui-diff-thread-reply" },
@@ -168,23 +166,6 @@ function DefaultComposer(props: { renderProps: ComposerRenderProps }): JSX.Eleme
       }, renderProps.isSubmitting ? "Sending\u2026" : "Comment"),
     ),
   );
-}
-
-// --- Comment icon for gutter ---
-
-const COMMENT_ICON_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
-
-function CommentGutterIcon(): JSX.Element {
-  return React.createElement("span", {
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      cursor: "pointer",
-      color: "var(--tui-blue)",
-      opacity: 0.7,
-    },
-    dangerouslySetInnerHTML: { __html: COMMENT_ICON_SVG },
-  });
 }
 
 // --- Hook ---
@@ -293,19 +274,10 @@ export function useDiffComments(
   }, [openReplyComposer]);
 
   const addon: DiffAddon = useMemo(() => {
-    const decorations: (DiffGutterDecoration | DiffAfterLineDecoration | DiffLineClassDecoration)[] = [];
+    const decorations: (DiffAfterLineDecoration | DiffLineClassDecoration)[] = [];
 
     // Thread decorations
     for (const thread of threads) {
-      // Gutter icon
-      decorations.push({
-        address: thread.address,
-        key: `thread-gutter-${thread.id}`,
-        zone: "gutter",
-        content: React.createElement(CommentGutterIcon),
-        title: `${thread.comments.length} comment${thread.comments.length !== 1 ? "s" : ""}`,
-      });
-
       // After-line thread card wrapped in bubble
       const actions = buildThreadActions(thread);
 
