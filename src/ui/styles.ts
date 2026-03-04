@@ -188,6 +188,16 @@ export const UI_STYLES = `
   background: var(--tui-bg-hover);
 }
 
+.tui-root .tui-icon-btn-primary {
+  background: var(--tui-primary);
+  border-color: var(--tui-primary);
+  color: #fff;
+}
+
+.tui-root .tui-icon-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
 .tui-root .tui-icon-btn.is-active {
   color: var(--tui-text);
   background: rgba(255, 255, 255, 0.08);

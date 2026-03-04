@@ -4,7 +4,7 @@ import { UI_STYLE_ID, UI_STYLES } from "./styles.ts";
 
 export type UIButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 export type UIButtonSize = "sm" | "md";
-export type UIIconButtonVariant = "ghost" | "secondary";
+export type UIIconButtonVariant = "ghost" | "secondary" | "primary";
 export type UIIconButtonSize = "sm" | "md";
 export type UIGroupTitle = string | HTMLElement;
 export type UIGroupSubtitle = string | HTMLElement;
@@ -18,6 +18,7 @@ export const Icon = {
   Check: "check",
   Pause: "pause",
   ExternalLink: "external-link",
+  Send: "send",
 } as const;
 export type UIIconName = (typeof Icon)[keyof typeof Icon];
 export type UIIconPrimitive =
@@ -100,6 +101,10 @@ const ICON_PRIMITIVES: Record<UIIconName, UIIconPrimitive[]> = {
     { tag: "line", x1: 15, y1: 3, x2: 21, y2: 3 },
     { tag: "line", x1: 21, y1: 3, x2: 21, y2: 9 },
     { tag: "line", x1: 10, y1: 14, x2: 21, y2: 3 },
+  ],
+  [Icon.Send]: [
+    { tag: "line", x1: 22, y1: 2, x2: 11, y2: 13 },
+    { tag: "path", d: "M22 2 L15 22 L11 13 L2 9 Z" },
   ],
 };
 
