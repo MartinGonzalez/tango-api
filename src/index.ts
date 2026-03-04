@@ -86,6 +86,8 @@ export {
   UIContainer,
   UIInlineCode,
   UIKeyValue,
+  UIScrollArea,
+  UIFooter,
 } from "./ui/react.tsx";
 // UI React types
 export type {

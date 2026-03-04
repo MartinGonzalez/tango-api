@@ -33,6 +33,27 @@ export const UI_STYLES = `
   min-height: 100%;
 }
 
+.tui-root.tui-root-fixed {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tui-root .tui-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tui-root .tui-footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--tui-border);
+  padding: 10px 16px;
+  background: var(--tui-bg);
+}
+
 .tui-root .tui-col {
   display: flex;
   flex-direction: column;

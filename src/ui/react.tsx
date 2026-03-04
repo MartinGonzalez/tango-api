@@ -50,10 +50,26 @@ export function useInstrumentUIStyles(): void {
 
 export function UIRoot(props: {
   className?: string;
+  fixed?: boolean;
   children?: React.ReactNode;
 }): JSX.Element {
   useInstrumentUIStyles();
-  return <div className={`tui-root ${props.className ?? ""}`.trim()}>{props.children}</div>;
+  const classes = ["tui-root"];
+  if (props.fixed) classes.push("tui-root-fixed");
+  if (props.className) classes.push(props.className);
+  return <div className={classes.join(" ")}>{props.children}</div>;
+}
+
+export function UIScrollArea(props: {
+  children?: React.ReactNode;
+}): JSX.Element {
+  return <div className="tui-scroll-area">{props.children}</div>;
+}
+
+export function UIFooter(props: {
+  children?: React.ReactNode;
+}): JSX.Element {
+  return <div className="tui-footer">{props.children}</div>;
 }
 
 export function UIPanelHeader(props: {
