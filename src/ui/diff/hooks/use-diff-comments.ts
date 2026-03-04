@@ -76,146 +76,49 @@ function DefaultThreadCard(props: {
   onReply?: () => void;
 }): JSX.Element {
   const { thread, onReply } = props;
-  const [expanded, setExpanded] = useState(true);
   const side = thread.address.side === "old" ? "L" : "R";
   const count = thread.comments.length;
   const countLabel = `${count} comment${count !== 1 ? "s" : ""}`;
 
-  const containerStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    fontSize: 12,
-    border: "1px solid var(--tui-border)",
-    borderRadius: "var(--tui-radius-tight)",
-    overflow: "hidden",
-  };
-
-  const headerStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "6px 10px",
-    background: "var(--tui-bg-card)",
-    cursor: "pointer",
-    userSelect: "none",
-  };
-
-  const headerLeftStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    color: "var(--tui-text-secondary)",
-    fontSize: 11,
-  };
-
-  const chevronStyle: React.CSSProperties = {
-    display: "inline-block",
-    fontSize: 9,
-    transition: "transform 0.15s",
-    transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-  };
-
-  const countStyle: React.CSSProperties = {
-    color: "var(--tui-text-secondary)",
-    fontSize: 11,
-  };
-
-  const bodyStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: 0,
-  };
-
-  const commentCardStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    padding: "10px 12px",
-    borderTop: "1px solid var(--tui-border)",
-  };
-
-  const authorRowStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "baseline",
-    gap: 8,
-  };
-
-  const authorStyle: React.CSSProperties = {
-    fontWeight: 600,
-    fontSize: 12,
-    color: "var(--tui-text)",
-  };
-
-  const dateStyle: React.CSSProperties = {
-    fontSize: 11,
-    color: "var(--tui-text-secondary)",
-  };
-
-  const textStyle: React.CSSProperties = {
-    color: "var(--tui-text)",
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    fontSize: 12,
-    lineHeight: 1.5,
-  };
-
-  const replyBtnStyle: React.CSSProperties = {
-    padding: "4px 12px",
-    border: "1px solid var(--tui-border)",
-    borderRadius: "var(--tui-radius-tight)",
-    background: "transparent",
-    color: "var(--tui-text)",
-    fontSize: 12,
-    cursor: "pointer",
-    alignSelf: "flex-start",
-  };
-
-  const resolvedBadgeStyle: React.CSSProperties = {
-    fontSize: 10,
-    color: "var(--tui-text-secondary)",
-    fontStyle: "italic",
-    marginLeft: 6,
-  };
-
-  return React.createElement("div", { style: containerStyle },
-    // Header
-    React.createElement("div", {
-      style: headerStyle,
-      onClick: () => setExpanded((v) => !v),
-    },
-      React.createElement("div", { style: headerLeftStyle },
-        React.createElement("span", { style: chevronStyle }, "\u25B6"),
-        React.createElement("span", null,
+  // Use native <details> for collapse — matches tango-app behavior
+  return React.createElement("details", {
+    className: "tui-diff-thread-card",
+    open: true,
+  },
+    React.createElement("summary", { className: "tui-diff-thread-card-head" },
+      React.createElement("span", { className: "tui-diff-thread-card-head-left" },
+        React.createElement("span", { className: "tui-diff-thread-card-caret", "aria-hidden": "true" }, "\u25B8"),
+        React.createElement("span", { className: "tui-diff-thread-card-label" },
           `Comment on line ${side}${thread.address.lineNumber}`
         ),
-        thread.isResolved && React.createElement("span", { style: resolvedBadgeStyle }, "Resolved"),
       ),
-      React.createElement("span", { style: countStyle }, countLabel),
+      React.createElement("span", { className: "tui-diff-thread-card-head-right" },
+        React.createElement("span", { className: "tui-diff-thread-card-count" }, countLabel),
+        thread.isResolved
+          ? React.createElement("span", { className: "tui-diff-thread-card-resolved" }, "Resolved")
+          : null,
+      ),
     ),
-    // Expanded body
-    expanded && React.createElement("div", { style: bodyStyle },
-      ...thread.comments.map((c) =>
-        React.createElement("div", { key: c.id, style: commentCardStyle },
-          React.createElement("div", { style: authorRowStyle },
-            React.createElement("span", { style: authorStyle }, `@${c.authorLogin}`),
-            React.createElement("span", { style: dateStyle }, formatCommentDate(c.createdAt)),
-          ),
-          c.bodyHtml
-            ? React.createElement("div", {
-                style: textStyle,
-                dangerouslySetInnerHTML: { __html: c.bodyHtml },
-              })
-            : React.createElement("div", { style: textStyle }, c.body),
-        )
-      ),
-      // Reply button
-      onReply && React.createElement("div", { style: { padding: "8px 12px", borderTop: "1px solid var(--tui-border)" } },
-        React.createElement("button", {
-          type: "button",
-          style: replyBtnStyle,
-          onClick: onReply,
-        }, "Reply"),
-      ),
+    ...thread.comments.map((c) =>
+      React.createElement("div", { key: c.id, className: "tui-diff-thread-comment" },
+        React.createElement("div", { className: "tui-diff-thread-comment-head" },
+          React.createElement("span", { className: "tui-diff-thread-comment-author" }, `@${c.authorLogin}`),
+          React.createElement("span", { className: "tui-diff-thread-comment-time" }, formatCommentDate(c.createdAt)),
+        ),
+        c.bodyHtml
+          ? React.createElement("div", {
+              className: "tui-diff-thread-comment-body",
+              dangerouslySetInnerHTML: { __html: c.bodyHtml },
+            })
+          : React.createElement("div", { className: "tui-diff-thread-comment-body" }, c.body),
+      )
+    ),
+    onReply && React.createElement("div", { className: "tui-diff-thread-reply" },
+      React.createElement("button", {
+        type: "button",
+        className: "tui-diff-thread-reply-trigger",
+        onClick: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onReply(); },
+      }, "Reply"),
     ),
   );
 }
@@ -223,73 +126,37 @@ function DefaultThreadCard(props: {
 function DefaultComposer(props: { renderProps: ComposerRenderProps }): JSX.Element {
   const { renderProps } = props;
   const [draft, setDraft] = useState("");
+  const side = renderProps.address.side === "old" ? "L" : "R";
+  const label = `Comment on line ${side}${renderProps.address.lineNumber}`;
 
-  const containerStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    fontSize: 12,
-  };
-  const textareaStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: 60,
-    padding: 6,
-    border: "1px solid var(--tui-border)",
-    borderRadius: "var(--tui-radius-tight)",
-    background: "var(--tui-control-bg)",
-    color: "var(--tui-text)",
-    fontSize: 12,
-    fontFamily: "inherit",
-    resize: "vertical",
-  };
-  const actionsStyle: React.CSSProperties = {
-    display: "flex",
-    gap: 6,
-    justifyContent: "flex-end",
-  };
-  const btnStyle: React.CSSProperties = {
-    padding: "3px 10px",
-    border: "1px solid var(--tui-border)",
-    borderRadius: "var(--tui-radius-tight)",
-    background: "transparent",
-    color: "var(--tui-text)",
-    fontSize: 11,
-    cursor: "pointer",
-  };
-  const submitStyle: React.CSSProperties = {
-    ...btnStyle,
-    background: "var(--tui-primary-soft)",
-    borderColor: "var(--tui-primary-border)",
-  };
-  const errorStyle: React.CSSProperties = {
-    color: "var(--tui-red)",
-    fontSize: 11,
-  };
-
-  return React.createElement("div", { style: containerStyle },
+  return React.createElement("div", { className: "tui-diff-inline-comment-bubble" },
+    React.createElement("div", { className: "tui-diff-inline-comment-head" },
+      React.createElement("span", { className: "tui-diff-inline-comment-label" }, label),
+    ),
     React.createElement("textarea", {
-      style: textareaStyle,
+      className: "tui-diff-inline-comment-input",
+      rows: 3,
       value: draft,
       onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setDraft(e.target.value),
-      placeholder: "Write a comment\u2026",
+      placeholder: "Write a comment",
       disabled: renderProps.isSubmitting,
       autoFocus: true,
     }),
-    renderProps.error && React.createElement("span", { style: errorStyle }, renderProps.error),
-    React.createElement("div", { style: actionsStyle },
+    renderProps.error && React.createElement("div", { className: "tui-diff-inline-comment-error" }, renderProps.error),
+    React.createElement("div", { className: "tui-diff-inline-comment-actions" },
       React.createElement("button", {
         type: "button",
-        style: btnStyle,
+        className: "tui-diff-inline-comment-btn ghost",
         onClick: renderProps.onCancel,
         disabled: renderProps.isSubmitting,
       }, "Cancel"),
       React.createElement("button", {
         type: "button",
-        style: submitStyle,
+        className: "tui-diff-inline-comment-btn",
         onClick: () => renderProps.onSubmit(draft),
         disabled: renderProps.isSubmitting || !draft.trim(),
       }, renderProps.isSubmitting ? "Sending\u2026" : "Comment"),
-    )
+    ),
   );
 }
 
@@ -397,14 +264,18 @@ export function useDiffComments(
         title: `${thread.comments.length} comment${thread.comments.length !== 1 ? "s" : ""}`,
       });
 
-      // After-line thread card
+      // After-line thread card wrapped in bubble
       const onReply = onReplyThreadRef.current
         ? () => openReplyComposer(thread.id, thread.address)
         : undefined;
 
-      const threadContent = customRenderThread
+      const threadCard = customRenderThread
         ? customRenderThread(thread, onReply ?? (() => {}))
         : React.createElement(DefaultThreadCard, { thread, onReply, key: thread.id });
+
+      const threadContent = React.createElement("div", {
+        className: "tui-diff-thread-bubble",
+      }, threadCard);
 
       decorations.push({
         address: thread.address,

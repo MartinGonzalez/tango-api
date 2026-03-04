@@ -406,6 +406,307 @@ export const DIFF_STYLES = `
   color: var(--tui-red);
 }
 
+/* Thread comments (addon: diff-comments) */
+
+.tui-root .tui-diff-after-line-content:has(.tui-diff-thread-bubble),
+.tui-root .tui-diff-after-line-content:has(.tui-diff-inline-comment-bubble) {
+  padding: 0;
+  border-top: none;
+  border-bottom: none;
+  background: transparent;
+}
+
+.tui-root .tui-diff-thread-bubble {
+  margin: 8px 10px 10px 22px;
+  border: 1px solid var(--tui-border-heavy, var(--tui-border));
+  border-radius: 12px;
+  background: var(--tui-bg-card);
+  overflow: hidden;
+  font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+}
+
+.tui-root .tui-diff-thread-card + .tui-diff-thread-card {
+  border-top: 1px solid var(--tui-border);
+}
+
+.tui-root .tui-diff-thread-card-head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--tui-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.tui-root .tui-diff-thread-card-head::-webkit-details-marker {
+  display: none;
+}
+
+.tui-root .tui-diff-thread-card-head-left,
+.tui-root .tui-diff-thread-card-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tui-root .tui-diff-thread-card-caret {
+  font-size: 10px;
+  color: var(--tui-text-secondary);
+  transition: transform 120ms ease;
+  transform-origin: center;
+}
+
+.tui-root .tui-diff-thread-card[open] > .tui-diff-thread-card-head .tui-diff-thread-card-caret {
+  transform: rotate(90deg);
+}
+
+.tui-root .tui-diff-thread-card-label {
+  font-size: 12px;
+  color: var(--tui-text-secondary);
+}
+
+.tui-root .tui-diff-thread-card-count {
+  font-size: 11px;
+  color: var(--tui-text-secondary);
+  opacity: 0.7;
+}
+
+.tui-root .tui-diff-thread-card-resolved {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tui-text-secondary);
+  opacity: 0.7;
+  border: 1px solid var(--tui-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.tui-root .tui-diff-thread-comment {
+  padding: 10px 12px;
+}
+
+.tui-root .tui-diff-thread-comment + .tui-diff-thread-comment {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tui-root .tui-diff-thread-comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tui-root .tui-diff-thread-comment-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tui-text);
+}
+
+.tui-root .tui-diff-thread-comment-time {
+  font-size: 11px;
+  color: var(--tui-text-secondary);
+  opacity: 0.7;
+}
+
+.tui-root .tui-diff-thread-comment-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--tui-text-secondary);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.tui-root .tui-diff-thread-comment-body > :first-child { margin-top: 0; }
+.tui-root .tui-diff-thread-comment-body > :last-child { margin-bottom: 0; }
+.tui-root .tui-diff-thread-comment-body p { margin: 0 0 8px; }
+
+.tui-root .tui-diff-thread-reply {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.tui-root .tui-diff-thread-reply-trigger {
+  justify-self: flex-start;
+  border: 1px solid var(--tui-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tui-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.tui-root .tui-diff-thread-reply-trigger:hover {
+  border-color: var(--tui-border-heavy, var(--tui-border));
+  color: var(--tui-text);
+  background: var(--tui-bg-hover, rgba(255, 255, 255, 0.04));
+}
+
+.tui-root .tui-diff-thread-reply-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+  border: 1px solid var(--tui-border);
+  border-radius: 10px;
+  background: var(--tui-control-bg, rgba(0, 0, 0, 0.2));
+  color: var(--tui-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 11px;
+}
+
+.tui-root .tui-diff-thread-reply-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+.tui-root .tui-diff-thread-reply-input:disabled {
+  opacity: 0.75;
+}
+
+.tui-root .tui-diff-thread-reply-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tui-root .tui-diff-thread-reply-btn {
+  border: 1px solid rgba(59, 130, 246, 0.6);
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--tui-text);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.tui-root .tui-diff-thread-reply-btn:hover {
+  background: rgba(59, 130, 246, 0.26);
+}
+
+.tui-root .tui-diff-thread-reply-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.tui-root .tui-diff-thread-reply-btn.ghost {
+  border-color: var(--tui-border);
+  background: transparent;
+  color: var(--tui-text-secondary);
+}
+
+.tui-root .tui-diff-thread-reply-btn.ghost:hover {
+  border-color: var(--tui-border-heavy, var(--tui-border));
+  background: var(--tui-bg-hover, rgba(255, 255, 255, 0.04));
+  color: var(--tui-text);
+}
+
+.tui-root .tui-diff-thread-reply-error {
+  color: #fca5a5;
+  font-size: 11px;
+}
+
+/* Inline comment composer (addon: diff-comments) */
+
+.tui-root .tui-diff-inline-comment-bubble {
+  margin: 8px 10px 10px 22px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.5);
+  overflow: hidden;
+  padding: 12px;
+  font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tui-root .tui-diff-inline-comment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tui-root .tui-diff-inline-comment-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tui-text-secondary);
+}
+
+.tui-root .tui-diff-inline-comment-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+  border: 1px solid var(--tui-border);
+  border-radius: 10px;
+  background: var(--tui-control-bg, rgba(0, 0, 0, 0.2));
+  color: var(--tui-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 10px;
+}
+
+.tui-root .tui-diff-inline-comment-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.tui-root .tui-diff-inline-comment-input:disabled {
+  opacity: 0.75;
+}
+
+.tui-root .tui-diff-inline-comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tui-root .tui-diff-inline-comment-btn {
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 7px;
+  background: rgba(59, 130, 246, 0.16);
+  color: var(--tui-text);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.tui-root .tui-diff-inline-comment-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.24);
+}
+
+.tui-root .tui-diff-inline-comment-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.tui-root .tui-diff-inline-comment-btn.ghost {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: var(--tui-text-secondary);
+}
+
+.tui-root .tui-diff-inline-comment-btn.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tui-root .tui-diff-inline-comment-error {
+  color: #fca5a5;
+  font-size: 11px;
+}
+
 /* Syntax highlight tokens (fallback) */
 
 .tui-root .tui-diff .token.keyword { color: #c678dd; }
