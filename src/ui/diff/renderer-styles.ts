@@ -621,9 +621,9 @@ export const DIFF_STYLES = `
 
 .tui-root .tui-diff-inline-comment-bubble {
   margin: 8px 10px 10px 22px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid var(--tui-border-heavy, var(--tui-border));
   border-radius: 12px;
-  background: rgba(17, 24, 39, 0.5);
+  background: var(--tui-bg-card);
   overflow: hidden;
   padding: 12px;
   font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
@@ -661,8 +661,7 @@ export const DIFF_STYLES = `
 
 .tui-root .tui-diff-inline-comment-input:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.55);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: var(--tui-border-heavy, var(--tui-border));
 }
 
 .tui-root .tui-diff-inline-comment-input:disabled {
@@ -676,9 +675,9 @@ export const DIFF_STYLES = `
 }
 
 .tui-root .tui-diff-inline-comment-btn {
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  border-radius: 7px;
-  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid var(--tui-border);
+  border-radius: 8px;
+  background: transparent;
   color: var(--tui-text);
   font-size: 12px;
   cursor: pointer;
@@ -686,7 +685,7 @@ export const DIFF_STYLES = `
 }
 
 .tui-root .tui-diff-inline-comment-btn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.24);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tui-root .tui-diff-inline-comment-btn:disabled {
@@ -695,13 +694,8 @@ export const DIFF_STYLES = `
 }
 
 .tui-root .tui-diff-inline-comment-btn.ghost {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: transparent;
+  border-color: var(--tui-border);
   color: var(--tui-text-secondary);
-}
-
-.tui-root .tui-diff-inline-comment-btn.ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .tui-root .tui-diff-inline-comment-error {
