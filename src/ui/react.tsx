@@ -789,6 +789,35 @@ function enhanceCodeBlocks(container: HTMLElement): void {
   }
 }
 
+function enhanceImages(container: HTMLElement): void {
+  const imgs = container.querySelectorAll("img");
+  for (const img of imgs) {
+    img.addEventListener("click", () => {
+      const overlay = document.createElement("div");
+      overlay.className = "tui-lightbox-overlay";
+
+      const fullImg = document.createElement("img");
+      fullImg.className = "tui-lightbox-img";
+      fullImg.src = img.src;
+      fullImg.alt = img.alt;
+
+      fullImg.addEventListener("click", (e) => e.stopPropagation());
+      overlay.addEventListener("click", () => overlay.remove());
+
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          overlay.remove();
+          document.removeEventListener("keydown", onKey);
+        }
+      };
+      document.addEventListener("keydown", onKey);
+
+      overlay.appendChild(fullImg);
+      document.body.appendChild(overlay);
+    });
+  }
+}
+
 export function UIMarkdownRenderer(props: {
   content: string;
   renderMarkdown: (text: string) => string;
@@ -806,6 +835,7 @@ export function UIMarkdownRenderer(props: {
     if (!showRaw && bodyRef.current) {
       bodyRef.current.innerHTML = html;
       enhanceCodeBlocks(bodyRef.current);
+      enhanceImages(bodyRef.current);
     }
   }, [html, showRaw]);
 

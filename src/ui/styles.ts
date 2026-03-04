@@ -1264,6 +1264,37 @@ export const UI_STYLES = `
   white-space: nowrap;
 }
 
+.tui-markdown-body img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--tui-radius-tight);
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.tui-markdown-body img:hover {
+  filter: brightness(0.85);
+}
+
+.tui-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.tui-lightbox-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
 .tui-root .tui-markdown-raw {
   margin: 0;
   flex: 1;
