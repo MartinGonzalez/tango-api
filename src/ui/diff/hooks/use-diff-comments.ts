@@ -335,16 +335,13 @@ export function useDiffComments(
       lineEventHandlers: (onCreateCommentRef.current || onReplyThreadRef.current)
         ? {
             onClick: (address: DiffLineAddress, event: React.MouseEvent) => {
-              const target = event.target as HTMLElement;
-              if (target.closest?.(".tui-diff-gutter")) {
-                event.stopPropagation();
-                // If a thread exists on this line, open reply composer; otherwise new comment
-                const existing = threadByAddress.get(lineAddressKey(address));
-                if (existing && onReplyThreadRef.current) {
-                  openReplyComposer(existing.id, address);
-                } else if (onCreateCommentRef.current) {
-                  openComposer(address);
-                }
+              event.stopPropagation();
+              // If a thread exists on this line, open reply composer; otherwise new comment
+              const existing = threadByAddress.get(lineAddressKey(address));
+              if (existing && onReplyThreadRef.current) {
+                openReplyComposer(existing.id, address);
+              } else if (onCreateCommentRef.current) {
+                openComposer(address);
               }
             },
           }
