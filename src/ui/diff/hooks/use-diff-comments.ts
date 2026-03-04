@@ -30,7 +30,7 @@ export type UseDiffCommentsOptions = {
   onCreateComment?: (address: DiffLineAddress, body: string) => Promise<void>;
   onReplyThread?: (threadId: string, body: string) => Promise<void>;
   /** Render a comment thread card. If omitted, a default renderer is used. */
-  renderThread?: (thread: DiffCommentThread) => React.ReactNode;
+  renderThread?: (thread: DiffCommentThread, onReply: () => void) => React.ReactNode;
   /** Render the comment composer UI. If omitted, a default renderer is used. */
   renderComposer?: (props: ComposerRenderProps) => React.ReactNode;
 };
@@ -49,10 +49,21 @@ export type UseDiffCommentsReturn = {
   closeComposer: () => void;
 };
 
+// --- Composer state ---
+
+type ComposerState = {
+  address: DiffLineAddress;
+  /** When set, the composer is in "reply" mode for this thread. */
+  replyThreadId: string | null;
+};
+
 // --- Default renderers ---
 
-function DefaultThreadCard(props: { thread: DiffCommentThread }): JSX.Element {
-  const { thread } = props;
+function DefaultThreadCard(props: {
+  thread: DiffCommentThread;
+  onReply?: () => void;
+}): JSX.Element {
+  const { thread, onReply } = props;
   const style: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
@@ -79,6 +90,17 @@ function DefaultThreadCard(props: { thread: DiffCommentThread }): JSX.Element {
     color: "var(--tui-text-secondary)",
     fontStyle: "italic",
   };
+  const replyBtnStyle: React.CSSProperties = {
+    padding: "2px 8px",
+    border: "1px solid var(--tui-border)",
+    borderRadius: "var(--tui-radius-tight)",
+    background: "transparent",
+    color: "var(--tui-text-secondary)",
+    fontSize: 11,
+    cursor: "pointer",
+    alignSelf: "flex-start",
+    marginTop: 2,
+  };
 
   return React.createElement("div", { style },
     thread.isResolved && React.createElement("span", { style: resolvedStyle }, "Resolved"),
@@ -92,7 +114,12 @@ function DefaultThreadCard(props: { thread: DiffCommentThread }): JSX.Element {
             })
           : React.createElement("span", { style: bodyStyle }, c.body)
       )
-    )
+    ),
+    onReply && React.createElement("button", {
+      type: "button",
+      style: replyBtnStyle,
+      onClick: onReply,
+    }, "Reply"),
   );
 }
 
@@ -199,32 +226,45 @@ export function useDiffComments(
     renderComposer: customRenderComposer,
   } = options;
 
-  const [composerAddress, setComposerAddress] = useState<DiffLineAddress | null>(null);
+  const [composer, setComposer] = useState<ComposerState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onCreateCommentRef = useRef(onCreateComment);
   onCreateCommentRef.current = onCreateComment;
 
+  const onReplyThreadRef = useRef(onReplyThread);
+  onReplyThreadRef.current = onReplyThread;
+
   const openComposer = useCallback((address: DiffLineAddress) => {
-    setComposerAddress(address);
+    setComposer({ address, replyThreadId: null });
+    setIsSubmitting(false);
+    setSubmitError(null);
+  }, []);
+
+  const openReplyComposer = useCallback((threadId: string, address: DiffLineAddress) => {
+    setComposer({ address, replyThreadId: threadId });
     setIsSubmitting(false);
     setSubmitError(null);
   }, []);
 
   const closeComposer = useCallback(() => {
-    setComposerAddress(null);
+    setComposer(null);
     setIsSubmitting(false);
     setSubmitError(null);
   }, []);
 
   const handleSubmit = useCallback(
     async (body: string) => {
-      if (!composerAddress || !onCreateCommentRef.current) return;
+      if (!composer) return;
       setIsSubmitting(true);
       setSubmitError(null);
       try {
-        await onCreateCommentRef.current(composerAddress, body);
+        if (composer.replyThreadId && onReplyThreadRef.current) {
+          await onReplyThreadRef.current(composer.replyThreadId, body);
+        } else if (onCreateCommentRef.current) {
+          await onCreateCommentRef.current(composer.address, body);
+        }
         closeComposer();
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Failed to send comment";
@@ -232,8 +272,17 @@ export function useDiffComments(
         setIsSubmitting(false);
       }
     },
-    [composerAddress, closeComposer]
+    [composer, closeComposer]
   );
+
+  // Build a lookup: lineAddressKey → thread, for gutter click routing
+  const threadByAddress = useMemo(() => {
+    const map = new Map<string, DiffCommentThread>();
+    for (const thread of threads) {
+      map.set(lineAddressKey(thread.address), thread);
+    }
+    return map;
+  }, [threads]);
 
   const addon: DiffAddon = useMemo(() => {
     const decorations: (DiffGutterDecoration | DiffAfterLineDecoration | DiffLineClassDecoration)[] = [];
@@ -252,9 +301,13 @@ export function useDiffComments(
       });
 
       // After-line thread card
+      const onReply = onReplyThreadRef.current
+        ? () => openReplyComposer(thread.id, thread.address)
+        : undefined;
+
       const threadContent = customRenderThread
-        ? customRenderThread(thread)
-        : React.createElement(DefaultThreadCard, { thread, key: thread.id });
+        ? customRenderThread(thread, onReply ?? (() => {}))
+        : React.createElement(DefaultThreadCard, { thread, onReply, key: thread.id });
 
       decorations.push({
         address: thread.address,
@@ -266,9 +319,9 @@ export function useDiffComments(
     }
 
     // Composer decoration
-    if (composerAddress && onCreateCommentRef.current) {
+    if (composer && (onCreateCommentRef.current || onReplyThreadRef.current)) {
       const composerProps: ComposerRenderProps = {
-        address: composerAddress,
+        address: composer.address,
         onSubmit: handleSubmit,
         onCancel: closeComposer,
         isSubmitting,
@@ -280,7 +333,7 @@ export function useDiffComments(
         : React.createElement(DefaultComposer, { renderProps: composerProps });
 
       decorations.push({
-        address: composerAddress,
+        address: composer.address,
         key: "composer-active",
         zone: "after-line",
         content: composerContent,
@@ -289,7 +342,7 @@ export function useDiffComments(
 
       // Highlight the targeted line
       decorations.push({
-        address: composerAddress,
+        address: composer.address,
         key: "composer-target-highlight",
         zone: "line-class",
         className: "tui-diff-line-selected",
@@ -299,14 +352,19 @@ export function useDiffComments(
     return {
       id: "diff-comments",
       decorations,
-      lineEventHandlers: onCreateCommentRef.current
+      lineEventHandlers: (onCreateCommentRef.current || onReplyThreadRef.current)
         ? {
             onClick: (address: DiffLineAddress, event: React.MouseEvent) => {
-              // Open composer on gutter click (detect by checking if click is near left edge)
               const target = event.target as HTMLElement;
               if (target.closest?.(".tui-diff-gutter")) {
                 event.stopPropagation();
-                openComposer(address);
+                // If a thread exists on this line, open reply composer; otherwise new comment
+                const existing = threadByAddress.get(lineAddressKey(address));
+                if (existing && onReplyThreadRef.current) {
+                  openReplyComposer(existing.id, address);
+                } else if (onCreateCommentRef.current) {
+                  openComposer(address);
+                }
               }
             },
           }
@@ -314,12 +372,14 @@ export function useDiffComments(
     };
   }, [
     threads,
-    composerAddress,
+    threadByAddress,
+    composer,
     isSubmitting,
     submitError,
     handleSubmit,
     closeComposer,
     openComposer,
+    openReplyComposer,
     customRenderThread,
     customRenderComposer,
   ]);
