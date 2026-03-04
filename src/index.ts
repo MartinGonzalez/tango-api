@@ -151,6 +151,7 @@ export function UIMarkdownRenderer(props: {
   content: string;
   rawViewEnabled?: boolean;
   className?: string;
+  proxyImage?: (src: string) => Promise<string>;
 }): JSX.Element {
   const api = useInstrumentApi();
   return React.createElement(_MarkdownRendererBase, {

@@ -789,9 +789,25 @@ function enhanceCodeBlocks(container: HTMLElement): void {
   }
 }
 
-function enhanceImages(container: HTMLElement): void {
+function enhanceImages(
+  container: HTMLElement,
+  proxyImage?: (src: string) => Promise<string>,
+): void {
   const imgs = container.querySelectorAll("img");
   for (const img of imgs) {
+    if (proxyImage && !img.hasAttribute("data-proxy-attempted")) {
+      img.addEventListener("error", () => {
+        if (img.hasAttribute("data-proxy-attempted")) return;
+        img.setAttribute("data-proxy-attempted", "true");
+        const originalSrc = img.src;
+        if (!originalSrc || originalSrc.startsWith("data:")) return;
+        proxyImage(originalSrc).then((dataUri) => {
+          img.src = dataUri;
+        }).catch(() => {
+          // Failed to proxy — leave the broken image
+        });
+      });
+    }
     img.addEventListener("click", () => {
       const overlay = document.createElement("div");
       overlay.className = "tui-lightbox-overlay";
@@ -824,6 +840,7 @@ export function UIMarkdownRenderer(props: {
   rawViewEnabled?: boolean;
   className?: string;
   openUrl?: (url: string) => void;
+  proxyImage?: (src: string) => Promise<string>;
 }): JSX.Element {
   const [view, setView] = useState<"preview" | "raw">("preview");
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -835,7 +852,7 @@ export function UIMarkdownRenderer(props: {
     if (!showRaw && bodyRef.current) {
       bodyRef.current.innerHTML = html;
       enhanceCodeBlocks(bodyRef.current);
-      enhanceImages(bodyRef.current);
+      enhanceImages(bodyRef.current, props.proxyImage);
     }
   }, [html, showRaw]);
 
