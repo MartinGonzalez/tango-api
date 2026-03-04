@@ -517,6 +517,8 @@ export const DIFF_STYLES = `
   color: var(--tui-text-secondary);
   white-space: normal;
   word-break: break-word;
+  padding: 0;
+  overflow: visible;
 }
 
 .tui-root .tui-diff-thread-comment-body > :first-child { margin-top: 0; }
