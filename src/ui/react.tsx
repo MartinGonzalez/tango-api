@@ -610,11 +610,13 @@ export function UIGroup(props: {
   animate?: boolean;
   meta?: React.ReactNode;
   actions?: React.ReactNode;
+  showCaret?: boolean;
   onToggle?: (nextExpanded: boolean) => void;
   children?: React.ReactNode;
 }): JSX.Element {
   const expanded = props.expanded ?? true;
   const hasToggle = typeof props.onToggle === "function";
+  const showCaret = props.showCaret ?? true;
 
   const titleNode =
     typeof props.title === "string" ? (
@@ -671,7 +673,7 @@ export function UIGroup(props: {
           onClick={(e) => e.stopPropagation()}
         >
           {props.actions}
-          {hasToggle ? (
+          {hasToggle && showCaret ? (
             <span
               className={`tui-group-caret${expanded ? " tui-group-caret-expanded" : ""}`}
               aria-hidden="true"
