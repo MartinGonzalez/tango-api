@@ -70,6 +70,7 @@ export type SessionsAPI = {
     cwd?: string;
     model?: string;
     tools?: string[];
+    sessionId?: string;
   }) => Promise<{
     text: string;
     durationMs: number;
