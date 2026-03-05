@@ -19,6 +19,7 @@ export const Icon = {
   Pause: "pause",
   ExternalLink: "external-link",
   Send: "send",
+  Pencil: "pencil",
 } as const;
 export type UIIconName = (typeof Icon)[keyof typeof Icon];
 export type UIIconPrimitive =
@@ -105,6 +106,10 @@ const ICON_PRIMITIVES: Record<UIIconName, UIIconPrimitive[]> = {
   [Icon.Send]: [
     { tag: "line", x1: 22, y1: 2, x2: 11, y2: 13 },
     { tag: "path", d: "M22 2 L15 22 L11 13 L2 9 Z" },
+  ],
+  [Icon.Pencil]: [
+    { tag: "path", d: "M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" },
+    { tag: "path", d: "m15 5 4 4" },
   ],
 };
 
