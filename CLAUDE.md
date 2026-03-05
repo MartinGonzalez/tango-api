@@ -71,12 +71,38 @@ Instruments have a **frontend** (React panels) and an optional **backend** (Bun-
 // Backend  — defineBackend({ kind: "tango.instrument.backend.v2", actions: { ... } })
 ```
 
+### Frontend/Backend Separation (MANDATORY)
+
+The frontend is a **pure view layer**. The backend owns all data fetching, polling, processing, and heavy lifting.
+
+**Rules:**
+- **NEVER poll, fetch, or run timers in the frontend.** No `setInterval`, no periodic `setTimeout` for data refresh. The frontend only renders what it's given.
+- **Backend pushes data to frontend via `ctx.emit()`.** When the backend detects new data (session ended, activity recorded, external event), it emits an event. The frontend listens with `useHostEvent` and updates.
+- **Frontend fetches on mount and on user action only.** Initial data load (`useEffect` on mount) and explicit user triggers (button clicks, form submissions) are the only valid reasons for the frontend to call `api.actions.call()`.
+- **Silent refreshes preserve UI state.** When the frontend receives a backend event, it fetches new data WITHOUT setting loading states that would destroy the component tree (unmounting inputs, closing dialogs, resetting scroll position).
+- **Loading states are for initial load only.** Show a loading indicator the first time data is requested. Subsequent updates from backend events should silently replace data in place.
+
+**Why:** Frontend polling causes unnecessary DOM rebuilds that destroy React state (open dialogs, form inputs, hover states). Backend-driven events are precise — they fire only when data actually changes, keeping the UI stable.
+
+**Pattern:**
+```ts
+// Backend: emit when data changes
+await store.addActivity(date, activity);
+ctx.emit({ event: "diary.updated", payload: { date } });
+
+// Frontend: listen and silently refresh
+useHostEvent("instrument.event", useCallback((payload) => {
+  if (payload.event === "diary.updated") void silentRefresh();
+}, [silentRefresh]));
+```
+
 ### Communication Model
 
 - **Host → Instrument:** Host events (`useHostEvent`) — snapshot updates, session streams, stage changes
+- **Backend → Frontend:** `ctx.emit()` pushes data change notifications to the frontend
 - **Instrument → Host:** `api.emit()`, `api.sessions.start()`, `api.stages.active()`
 - **Instrument → Instrument:** `instrument.event` host event for cross-instrument messaging
-- **Frontend → Backend:** `api.actions.call("actionName", input)` or `useInstrumentAction` hook
+- **Frontend → Backend:** `api.actions.call("actionName", input)` or `useInstrumentAction` hook (mount + user actions only)
 
 ### Key Hooks
 
