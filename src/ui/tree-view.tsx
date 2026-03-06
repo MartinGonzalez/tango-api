@@ -53,6 +53,7 @@ export type UITreeViewProps<T> = {
   onItemClick?: (path: string) => void;
   renderItemMeta?: (item: T) => React.ReactNode;
   renderItemIcon?: (item: T) => React.ReactNode;
+  renderDirMeta?: (dir: TreeNode<T>) => React.ReactNode;
 };
 
 const INDENT_PX = 16;
@@ -101,6 +102,7 @@ function TreeRows<T>({
   onItemClick,
   renderItemMeta,
   renderItemIcon,
+  renderDirMeta,
   expandedDirs,
   onToggleDir,
 }: {
@@ -111,6 +113,7 @@ function TreeRows<T>({
   onItemClick?: (path: string) => void;
   renderItemMeta?: (item: T) => React.ReactNode;
   renderItemIcon?: (item: T) => React.ReactNode;
+  renderDirMeta?: (dir: TreeNode<T>) => React.ReactNode;
   expandedDirs: Map<string, boolean>;
   onToggleDir: (path: string) => void;
 }) {
@@ -137,7 +140,7 @@ function TreeRows<T>({
               <Chevron open={isOpen} />
               <FolderIcon open={isOpen} />
               <span className="tui-tree-folder-name">{dir.name}</span>
-              <span className="tui-tree-folder-count">{countTreeItems(dir)}</span>
+              {renderDirMeta && <span className="tui-tree-folder-count">{renderDirMeta(dir)}</span>}
             </button>
             {isOpen && (
               <TreeRows
@@ -148,6 +151,7 @@ function TreeRows<T>({
                 onItemClick={onItemClick}
                 renderItemMeta={renderItemMeta}
                 renderItemIcon={renderItemIcon}
+                renderDirMeta={renderDirMeta}
                 expandedDirs={expandedDirs}
                 onToggleDir={onToggleDir}
               />
@@ -186,6 +190,7 @@ export function UITreeView<T>({
   onItemClick,
   renderItemMeta,
   renderItemIcon,
+  renderDirMeta,
 }: UITreeViewProps<T>) {
   const [expandedDirs, setExpandedDirs] = useState<Map<string, boolean>>(
     new Map(),
@@ -209,6 +214,7 @@ export function UITreeView<T>({
         onItemClick={onItemClick}
         renderItemMeta={renderItemMeta}
         renderItemIcon={renderItemIcon}
+        renderDirMeta={renderDirMeta}
         expandedDirs={expandedDirs}
         onToggleDir={handleToggleDir}
       />
