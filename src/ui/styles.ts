@@ -1358,4 +1358,99 @@ export const UI_STYLES = `
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ── Tree View ─────────────────────────────────────────────── */
+
+.tui-root .tui-tree-view {
+  padding: 4px 0;
+}
+
+.tui-root .tui-tree-folder {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--tui-text-secondary);
+  text-align: left;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 80ms ease;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.tui-root .tui-tree-folder:hover {
+  background: var(--tui-bg-hover);
+}
+
+.tui-root .tui-tree-caret {
+  font-size: 10px;
+  color: var(--tui-text-secondary);
+  transition: transform 120ms ease;
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
+.tui-root .tui-tree-folder-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tui-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.tui-root .tui-tree-folder-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--tui-text-secondary);
+  flex-shrink: 0;
+}
+
+.tui-root .tui-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 80ms ease;
+}
+
+.tui-root .tui-tree-item:hover {
+  background: var(--tui-bg-hover);
+}
+
+.tui-root .tui-tree-item-active {
+  background: var(--tui-bg-active);
+}
+
+.tui-root .tui-tree-item-active:hover {
+  background: var(--tui-bg-active);
+}
+
+.tui-root .tui-tree-item-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tui-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.tui-root .tui-tree-item-active .tui-tree-item-name {
+  color: var(--tui-text);
+}
+
+.tui-root .tui-tree-item-meta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
 `;

@@ -99,6 +99,10 @@ export type {
   UIGroupTitle,
 } from "./ui/react.tsx";
 
+// Tree view
+export { UITreeView, buildTree, countTreeItems } from "./ui/tree-view.tsx";
+export type { UITreeViewProps, TreeNode } from "./ui/tree-view.tsx";
+
 // Diff renderer
 export { UIDiffRenderer } from "./ui/diff/renderer.tsx";
 export type { UIDiffRendererProps, FullFileContent } from "./ui/diff/renderer.tsx";
