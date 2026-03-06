@@ -878,12 +878,12 @@ export const UI_STYLES = `
   border-radius: var(--tui-radius-control);
   background: var(--tui-dropdown-bg);
   color: var(--tui-text);
-  min-height: 42px;
-  padding: 7px 14px;
+  min-height: 34px;
+  padding: 6px 11px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease;
   outline: none;
@@ -909,7 +909,7 @@ export const UI_STYLES = `
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -918,8 +918,8 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-dropdown-select-caret {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   color: #8d94a3;
   flex-shrink: 0;
   position: relative;
@@ -947,7 +947,7 @@ export const UI_STYLES = `
 
 .tui-root .tui-dropdown-select-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
   border: 1px solid var(--tui-dropdown-border);
@@ -967,11 +967,11 @@ export const UI_STYLES = `
   border: 0;
   background: transparent;
   color: var(--tui-text);
-  min-height: 40px;
-  padding: 7px 14px;
+  min-height: 32px;
+  padding: 6px 11px;
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   transition: background 120ms ease, color 120ms ease;
 }
