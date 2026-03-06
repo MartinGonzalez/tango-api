@@ -24,6 +24,8 @@ export type {
   InstrumentBackendHostAPI,
   InstrumentFrontendAPI,
   InstrumentSettingsAPI,
+  LoggerAPI,
+  LogLevel,
   PullRequestAgentReviewStatus,
   SessionsAPI,
   SessionStartParams,

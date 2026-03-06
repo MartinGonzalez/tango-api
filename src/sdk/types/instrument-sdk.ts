@@ -160,6 +160,15 @@ export type UIAPI = {
   openUrl: (url: string) => void;
 };
 
+export type LogLevel = "error" | "warn" | "info" | "event" | "debug";
+
+export type LoggerAPI = {
+  error: (message: string, ...args: unknown[]) => void;
+  warn: (message: string, ...args: unknown[]) => void;
+  info: (message: string, ...args: unknown[]) => void;
+  debug: (message: string, ...args: unknown[]) => void;
+};
+
 export type InstrumentFrontendAPI = {
   instrumentId: string;
   permissions: InstrumentPermission[];
@@ -171,6 +180,7 @@ export type InstrumentFrontendAPI = {
   actions: InstrumentActionsAPI;
   settings: InstrumentSettingsAPI;
   ui: UIAPI;
+  logger: LoggerAPI;
   registerShortcut: (shortcut: ShortcutRegistration) => void;
   emit: (event: Omit<InstrumentEvent, "instrumentId">) => void;
 };
@@ -237,6 +247,7 @@ export type InstrumentBackendContext = {
   instrumentId: string;
   permissions: InstrumentPermission[];
   emit: (event: Omit<InstrumentEvent, "instrumentId">) => void;
+  logger: LoggerAPI;
   host: InstrumentBackendHostAPI;
 };
 

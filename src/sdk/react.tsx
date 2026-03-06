@@ -14,6 +14,7 @@ import {
   type HostEventMap,
   type InstrumentFrontendAPI,
   type InstrumentSettingField,
+  type LoggerAPI,
   type TangoInstrumentDefinition,
   type TangoPanelComponent,
   type TangoPanelSlot,
@@ -50,6 +51,11 @@ export function useInstrumentApi(): InstrumentFrontendAPI {
 
 export function useInstrumentApiOptional(): InstrumentFrontendAPI | null {
   return useContext(InstrumentApiContext);
+}
+
+export function useLogger(): LoggerAPI {
+  const api = useInstrumentApi();
+  return api.logger;
 }
 
 export function useHostEvent<E extends keyof HostEventMap>(
