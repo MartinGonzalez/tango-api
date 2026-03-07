@@ -22,6 +22,7 @@ export type {
   InstrumentBackendContext,
   InstrumentBackendDefinition,
   InstrumentBackendHostAPI,
+  InstrumentBackgroundRefreshContext,
   InstrumentFrontendAPI,
   InstrumentSettingsAPI,
   LoggerAPI,
@@ -43,6 +44,7 @@ export type {
 
 export type {
   InstrumentEvent,
+  BackgroundRefreshConfig,
   InstrumentInstallSource,
   InstrumentLauncherConfig,
   InstrumentManifest,

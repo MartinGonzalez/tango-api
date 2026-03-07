@@ -8,4 +8,5 @@ export type {
   InstrumentBackendContext,
   InstrumentBackendDefinition,
   InstrumentBackendHostAPI,
+  InstrumentBackgroundRefreshContext,
 } from "./sdk/index.ts";
