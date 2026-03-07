@@ -1,6 +1,6 @@
 import { readFile, access } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { InstrumentPermission } from "../types/instruments.ts";
+import type { InstrumentPermission, InstrumentCategory } from "../types/instruments.ts";
 
 type PackageJsonLike = {
   tango?: {
@@ -18,6 +18,15 @@ const VALID_PERMISSIONS: InstrumentPermission[] = [
   "connectors.connect",
   "stages.read",
   "stages.observe",
+];
+
+const VALID_CATEGORIES: InstrumentCategory[] = [
+  "developer-tools",
+  "productivity",
+  "media",
+  "communication",
+  "finance",
+  "utilities",
 ];
 
 const VALID_PANEL_SLOTS = ["sidebar", "first", "second", "right"];
@@ -92,6 +101,16 @@ export async function validateInstrument(projectDir: string): Promise<Validation
           message: `Source file not found: ${srcPath} or ${srcPath.replace(/\.tsx$/, ".ts")}`,
         });
       }
+    }
+  }
+
+  // Category
+  if (manifest.category != null) {
+    if (typeof manifest.category !== "string" || !VALID_CATEGORIES.includes(manifest.category as InstrumentCategory)) {
+      errors.push({
+        field: "category",
+        message: `Invalid category '${manifest.category}'. Valid: ${VALID_CATEGORIES.join(", ")}`,
+      });
     }
   }
 
