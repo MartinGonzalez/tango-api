@@ -80,8 +80,8 @@ export const DIFF_STYLES = `
   font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: 12px;
   color: var(--tui-text);
-  background: var(--tui-bg-secondary);
-  border-bottom: 1px solid var(--tui-primary);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
   transition: background 0.15s;
 }
 
