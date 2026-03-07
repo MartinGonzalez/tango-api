@@ -6,6 +6,20 @@ import { generateEnvTypes } from "./generate-env-types.ts";
 
 const DEV_RELOAD_URL = "http://localhost:4243/api/instruments/dev-reload";
 const DEBOUNCE_MS = 300;
+const LOCKFILES = new Set(["bun.lock", "bun.lockb"]);
+
+export type FileChangeKind = "source" | "deps" | "lockfile" | "ignore";
+
+export function classifyFileChange(
+  watcher: "src" | "root",
+  filename: string | null
+): FileChangeKind {
+  if (!filename) return "ignore";
+  if (watcher === "src") return "source";
+  if (filename === "package.json") return "deps";
+  if (LOCKFILES.has(filename)) return "lockfile";
+  return "ignore";
+}
 
 type InstrumentManifestLike = {
   id?: string;
@@ -168,16 +182,26 @@ export async function devInstrument(projectDir: string): Promise<void> {
   }
 
   // Step 5: Watch for changes
-  console.log(`[tango-sdk dev] Watching ${srcDir}...`);
+  console.log(`[tango-sdk dev] Watching src/ and package.json for changes...`);
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let building = false;
+  let needsInstall = false;
 
   async function rebuild(): Promise<void> {
     if (building) return;
     building = true;
     const start = Date.now();
     try {
+      if (needsInstall) {
+        needsInstall = false;
+        console.log("[tango-sdk dev] Dependencies changed, reinstalling...");
+        await rm(join(cwd, "node_modules", ".bun"), { recursive: true, force: true });
+        execSync("bun install", { cwd, stdio: "pipe" });
+        try {
+          await generateEnvTypes(cwd);
+        } catch {}
+      }
       const result = await buildInstrument(cwd);
       const notified = await notifyReload(instrumentId, cwd);
       const elapsed = Date.now() - start;
@@ -191,16 +215,50 @@ export async function devInstrument(projectDir: string): Promise<void> {
     }
   }
 
-  try {
-    const watcher = watch(srcDir, { recursive: true });
-    for await (const event of watcher) {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        void rebuild();
-      }, DEBOUNCE_MS);
-    }
-  } catch (err) {
-    console.error(`[tango-sdk dev] Watch error: ${err}`);
-    process.exit(1);
+  function scheduleBuild(): void {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => void rebuild(), DEBOUNCE_MS);
   }
+
+  // Watch src/ for code changes
+  function watchSrc(): void {
+    (async () => {
+      try {
+        const watcher = watch(srcDir, { recursive: true });
+        for await (const event of watcher) {
+          const kind = classifyFileChange("src", event.filename);
+          if (kind !== "ignore") scheduleBuild();
+        }
+      } catch (err) {
+        console.error(`[tango-sdk dev] src/ watch error: ${err}`);
+        process.exit(1);
+      }
+    })();
+  }
+
+  // Watch root for package.json and lockfile changes
+  function watchRoot(): void {
+    (async () => {
+      try {
+        const watcher = watch(cwd, { recursive: false });
+        for await (const event of watcher) {
+          const kind = classifyFileChange("root", event.filename);
+          if (kind === "deps") {
+            needsInstall = true;
+            scheduleBuild();
+          } else if (kind === "lockfile") {
+            scheduleBuild();
+          }
+        }
+      } catch (err) {
+        console.error(`[tango-sdk dev] root watch error: ${err}`);
+      }
+    })();
+  }
+
+  watchRoot();
+  watchSrc();
+
+  // Keep process alive
+  await new Promise(() => {});
 }
