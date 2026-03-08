@@ -159,23 +159,38 @@ export async function publishInstrument(projectDir: string): Promise<void> {
 
   try {
     console.log("[publish] Cloning fork...");
-    run(`gh repo clone ${forkRepo} "${cloneDir}" -- --depth=1`);
+    const ghToken = run("gh auth token").trim();
 
-    // Configure gh as credential helper so git never prompts
-    run("git config credential.helper '!gh auth git-credential'", { cwd: cloneDir });
+    // Write temp credentials file so all git operations authenticate without prompting
+    const credFile = join(tempBase, ".git-credentials");
+    await writeFile(credFile, `https://${ghUser}:${ghToken}@github.com\n`, { mode: 0o600 });
+
+    const gitEnv = {
+      ...process.env,
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_ASKPASS: "",
+      SSH_ASKPASS: "",
+    };
+    const gitRun = (cmd: string, cwd?: string) =>
+      execSync(cmd, { encoding: "utf8", cwd, stdio: ["pipe", "pipe", "pipe"], env: gitEnv });
+
+    gitRun(`git -c credential.helper="store --file=${credFile}" clone --depth=1 https://github.com/${forkRepo}.git "${cloneDir}"`);
+
+    // Configure credential helper for all subsequent operations in this repo
+    gitRun(`git config credential.helper "store --file=${credFile}"`, cloneDir);
 
     // 7. Sync with upstream
     try {
-      run(`git remote add upstream https://github.com/${TARGET_REPO}.git`, { cwd: cloneDir });
+      gitRun(`git remote add upstream https://github.com/${TARGET_REPO}.git`, cloneDir);
     } catch {
       // upstream already exists
     }
-    run("git fetch upstream main", { cwd: cloneDir });
-    run("git reset --hard upstream/main", { cwd: cloneDir });
+    gitRun("git fetch upstream main", cloneDir);
+    gitRun("git reset --hard upstream/main", cloneDir);
 
     // 8. Create branch
     const branch = `publish/${instrumentId}`;
-    run(`git checkout -B ${branch}`, { cwd: cloneDir });
+    gitRun(`git checkout -B ${branch}`, cloneDir);
 
     // 9. Copy instrument files
     console.log("[publish] Copying instrument files...");
@@ -205,9 +220,9 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     );
 
     // 11. Commit
-    run("git add -A", { cwd: cloneDir });
+    gitRun("git add -A", cloneDir);
 
-    const status = run("git status --porcelain", { cwd: cloneDir });
+    const status = gitRun("git status --porcelain", cloneDir);
     if (!status.trim()) {
       console.log(
         "[publish] No changes to publish. Instrument is already up to date.",
@@ -218,12 +233,12 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     const commitMsg = alreadyExists
       ? `Update ${instrumentName} (${instrumentId})`
       : `Add ${instrumentName} (${instrumentId})`;
-    run(`git commit -m "${commitMsg}"`, { cwd: cloneDir });
+    gitRun(`git commit -m "${commitMsg}"`, cloneDir);
 
     // 12. Push
     console.log("[publish] Pushing to fork...");
     try {
-      run(`git push --force origin ${branch}`, { cwd: cloneDir });
+      gitRun(`git push --force origin ${branch}`, cloneDir);
     } catch (err) {
       console.error(
         `[publish] Failed to push to fork (${forkRepo}).\n` +
