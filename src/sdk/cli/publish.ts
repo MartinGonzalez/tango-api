@@ -1,4 +1,4 @@
-import { readFile, cp, writeFile, rm, mkdtemp } from "node:fs/promises";
+import { readFile, cp, writeFile, rm, mkdtemp, access } from "node:fs/promises";
 import { join, resolve, basename } from "node:path";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -37,7 +37,7 @@ function run(cmd: string, opts?: { cwd?: string }): string {
     encoding: "utf8",
     cwd: opts?.cwd,
     stdio: ["pipe", "pipe", "pipe"],
-  });
+  }).trim();
 }
 
 function runInherit(cmd: string, opts?: { cwd?: string }): void {
@@ -118,6 +118,25 @@ function buildPrBody(
   return lines.join("\n");
 }
 
+// ── Detection ───────────────────────────────────────────────────
+
+/**
+ * Detect if the instrument lives inside the tango-instruments repo.
+ * Returns the repo root if yes, null if no.
+ */
+function detectMaintainerMode(cwd: string): string | null {
+  try {
+    const repoRoot = run("git rev-parse --show-toplevel", { cwd });
+    const originUrl = run("git remote get-url origin", { cwd: repoRoot });
+    if (originUrl.includes(TARGET_REPO)) {
+      return repoRoot;
+    }
+  } catch {
+    // Not in a git repo or no origin — fall through to fork flow
+  }
+  return null;
+}
+
 // ── Main ────────────────────────────────────────────────────────
 
 type BumpLevel = "patch" | "minor" | "major";
@@ -146,6 +165,187 @@ async function bumpPackageVersion(cwd: string, level: BumpLevel): Promise<string
   return newVersion;
 }
 
+// ── Maintainer flow (direct PR) ─────────────────────────────────
+
+async function publishMaintainer(cwd: string, repoRoot: string, level: BumpLevel): Promise<void> {
+  const manifest = await readManifest(cwd);
+  const instrumentId = manifest.id;
+  const instrumentName = manifest.name;
+
+  // Must be on a feature branch
+  const branch = run("git branch --show-current", { cwd: repoRoot });
+  if (branch === "main") {
+    // Auto-create a branch from the instrument id and bump level
+    const newBranch = `feat/${instrumentId}-${level}`;
+    console.log(`[publish] On main — creating branch ${newBranch}...`);
+    run(`git checkout -b ${newBranch}`, { cwd: repoRoot });
+  }
+
+  const currentBranch = run("git branch --show-current", { cwd: repoRoot });
+
+  // Bump version
+  const newVersion = await bumpPackageVersion(cwd, level);
+  console.log(`[publish] ${instrumentName} (${instrumentId}) → v${newVersion}`);
+
+  // Stage and commit
+  run("git add -A", { cwd: repoRoot });
+  const status = run("git status --porcelain", { cwd: repoRoot });
+  if (!status) {
+    console.log("[publish] No changes to publish. Already up to date.");
+    return;
+  }
+
+  const commitMsg = `Update ${instrumentName} to v${newVersion}`;
+  run(`git commit -m "${commitMsg}"`, { cwd: repoRoot });
+
+  // Push
+  console.log(`[publish] Pushing ${currentBranch}...`);
+  runInherit(`git push -u origin ${currentBranch}`, { cwd: repoRoot });
+
+  // Check for existing PR
+  const existingPr = run(
+    `gh pr list --repo ${TARGET_REPO} --head ${currentBranch} --json url --jq ".[0].url"`,
+  );
+  if (existingPr) {
+    console.log(`\n[publish] PR updated: ${existingPr}`);
+    return;
+  }
+
+  // Create PR
+  const prTitle = `feat: update ${instrumentName} to v${newVersion}`;
+  const prBody = buildPrBody(manifest, true);
+  const prUrl = run(
+    `gh pr create --repo ${TARGET_REPO} --base main --head ${currentBranch} --title "${prTitle}" --body "${prBody.replace(/"/g, '\\"')}"`,
+    { cwd: repoRoot },
+  );
+
+  console.log(`\n[publish] PR created: ${prUrl}`);
+}
+
+// ── External contributor flow (fork) ────────────────────────────
+
+async function publishFork(cwd: string, level: BumpLevel): Promise<void> {
+  // 1. Bump version
+  const newVersion = await bumpPackageVersion(cwd, level);
+  console.log(`[publish] Version bumped to ${newVersion}`);
+
+  // 2. Read manifest
+  const manifest = await readManifest(cwd);
+  const instrumentId = manifest.id;
+  const instrumentName = manifest.name;
+  console.log(`[publish] Instrument: ${instrumentName} (${instrumentId})`);
+
+  // 3. Fork target repo (idempotent)
+  console.log(`[publish] Forking ${TARGET_REPO}...`);
+  try {
+    run(`gh repo fork ${TARGET_REPO} --clone=false`);
+  } catch {
+    // Fork already exists — that's fine
+  }
+
+  // 4. Get fork info
+  const ghUser = getGhUser();
+  const forkRepo = `${ghUser}/tango-instruments`;
+
+  // 5. Clone fork to temp dir
+  const tempBase = await mkdtemp(join(tmpdir(), "tango-publish-"));
+  const cloneDir = join(tempBase, "tango-instruments");
+
+  try {
+    console.log("[publish] Cloning fork...");
+    runInherit(`git clone --depth=1 git@github.com:${forkRepo}.git "${cloneDir}"`);
+
+    // 6. Sync with upstream
+    try {
+      run(`git remote add upstream git@github.com:${TARGET_REPO}.git`, { cwd: cloneDir });
+    } catch {
+      // upstream already exists
+    }
+    runInherit(`git -C "${cloneDir}" fetch upstream main`);
+    run("git reset --hard upstream/main", { cwd: cloneDir });
+
+    // 7. Create branch
+    const branch = `publish/${instrumentId}`;
+    run(`git checkout -B ${branch}`, { cwd: cloneDir });
+
+    // 8. Copy instrument files
+    console.log("[publish] Copying instrument files...");
+    const targetDir = join(cloneDir, instrumentId);
+    await rm(targetDir, { recursive: true, force: true });
+    await cp(cwd, targetDir, {
+      recursive: true,
+      filter: (source) => {
+        const name = basename(source);
+        return !EXCLUDE.has(name);
+      },
+    });
+
+    // 9. Update tango.json
+    const tangoJsonPath = join(cloneDir, "tango.json");
+    const tangoJson = await readTangoJson(tangoJsonPath);
+    const entryPath = `./${instrumentId}`;
+    const alreadyExists = tangoJson.instruments.some(
+      (e) => e.path === entryPath,
+    );
+    if (!alreadyExists) {
+      tangoJson.instruments.push({ path: entryPath });
+      tangoJson.instruments.sort((a, b) => a.path.localeCompare(b.path));
+    }
+    await writeFile(
+      tangoJsonPath,
+      JSON.stringify(tangoJson, null, 2) + "\n",
+    );
+
+    // 10. Commit
+    run("git add -A", { cwd: cloneDir });
+
+    const status = run("git status --porcelain", { cwd: cloneDir });
+    if (!status) {
+      console.log(
+        "[publish] No changes to publish. Instrument is already up to date.",
+      );
+      return;
+    }
+
+    const commitMsg = alreadyExists
+      ? `Update ${instrumentName} (${instrumentId})`
+      : `Add ${instrumentName} (${instrumentId})`;
+    run(`git commit -m "${commitMsg}"`, { cwd: cloneDir });
+
+    // 11. Push
+    console.log("[publish] Pushing to fork...");
+    runInherit(`git -C "${cloneDir}" push --force origin ${branch}`);
+
+    // 12. Check for existing PR
+    const existingPr = run(
+      `gh pr list --repo ${TARGET_REPO} --head ${ghUser}:${branch} --json url --jq ".[0].url"`,
+    );
+
+    if (existingPr) {
+      console.log(`\n[publish] PR updated (force-pushed): ${existingPr}`);
+      return;
+    }
+
+    // 13. Create PR
+    const prTitle = alreadyExists
+      ? `feat: update ${instrumentName} (${instrumentId})`
+      : `feat: add ${instrumentName} (${instrumentId})`;
+    const prBody = buildPrBody(manifest, alreadyExists);
+    const bodyFile = join(tempBase, "pr-body.md");
+    await writeFile(bodyFile, prBody);
+
+    const prUrl = run(
+      `gh pr create --repo ${TARGET_REPO} --head ${ghUser}:${branch} --base main --title "${prTitle}" --body-file "${bodyFile}"`,
+    );
+
+    console.log(`\n[publish] PR created: ${prUrl}`);
+  } finally {
+    await rm(tempBase, { recursive: true, force: true });
+  }
+}
+
+// ── Entry point ─────────────────────────────────────────────────
+
 export async function publishInstrument(projectDir: string, level: BumpLevel = "patch"): Promise<void> {
   const cwd = resolve(projectDir);
 
@@ -165,122 +365,13 @@ export async function publishInstrument(projectDir: string, level: BumpLevel = "
     return;
   }
 
-  // 3. Bump version
-  const newVersion = await bumpPackageVersion(cwd, level);
-  console.log(`[publish] Version bumped to ${newVersion}`);
-
-  // 4. Read manifest
-  const manifest = await readManifest(cwd);
-  const instrumentId = manifest.id;
-  const instrumentName = manifest.name;
-  console.log(`[publish] Instrument: ${instrumentName} (${instrumentId})`);
-
-  // 4. Fork target repo (idempotent)
-  console.log(`[publish] Forking ${TARGET_REPO}...`);
-  try {
-    run(`gh repo fork ${TARGET_REPO} --clone=false`);
-  } catch {
-    // Fork already exists — that's fine
-  }
-
-  // 5. Get fork info
-  const ghUser = getGhUser();
-  const forkRepo = `${ghUser}/tango-instruments`;
-
-  // 6. Clone fork to temp dir using plain git (respects user's SSH/HTTPS config)
-  const tempBase = await mkdtemp(join(tmpdir(), "tango-publish-"));
-  const cloneDir = join(tempBase, "tango-instruments");
-
-  try {
-    console.log("[publish] Cloning fork...");
-    runInherit(`git clone --depth=1 git@github.com:${forkRepo}.git "${cloneDir}"`);
-
-    // 7. Sync with upstream
-    try {
-      run(`git remote add upstream git@github.com:${TARGET_REPO}.git`, { cwd: cloneDir });
-    } catch {
-      // upstream already exists
-    }
-    runInherit(`git -C "${cloneDir}" fetch upstream main`);
-    run("git reset --hard upstream/main", { cwd: cloneDir });
-
-    // 8. Create branch
-    const branch = `publish/${instrumentId}`;
-    run(`git checkout -B ${branch}`, { cwd: cloneDir });
-
-    // 9. Copy instrument files (remove old version first for clean diff)
-    console.log("[publish] Copying instrument files...");
-    const targetDir = join(cloneDir, instrumentId);
-    await rm(targetDir, { recursive: true, force: true });
-    await cp(cwd, targetDir, {
-      recursive: true,
-      filter: (source) => {
-        const name = basename(source);
-        return !EXCLUDE.has(name);
-      },
-    });
-
-    // 10. Update tango.json
-    const tangoJsonPath = join(cloneDir, "tango.json");
-    const tangoJson = await readTangoJson(tangoJsonPath);
-    const entryPath = `./${instrumentId}`;
-    const alreadyExists = tangoJson.instruments.some(
-      (e) => e.path === entryPath,
-    );
-    if (!alreadyExists) {
-      tangoJson.instruments.push({ path: entryPath });
-      tangoJson.instruments.sort((a, b) => a.path.localeCompare(b.path));
-    }
-    await writeFile(
-      tangoJsonPath,
-      JSON.stringify(tangoJson, null, 2) + "\n",
-    );
-
-    // 11. Commit
-    run("git add -A", { cwd: cloneDir });
-
-    const status = run("git status --porcelain", { cwd: cloneDir });
-    if (!status.trim()) {
-      console.log(
-        "[publish] No changes to publish. Instrument is already up to date.",
-      );
-      return;
-    }
-
-    const commitMsg = alreadyExists
-      ? `Update ${instrumentName} (${instrumentId})`
-      : `Add ${instrumentName} (${instrumentId})`;
-    run(`git commit -m "${commitMsg}"`, { cwd: cloneDir });
-
-    // 12. Push
-    console.log("[publish] Pushing to fork...");
-    runInherit(`git -C "${cloneDir}" push --force origin ${branch}`);
-
-    // 13. Check for existing PR
-    const existingPr = run(
-      `gh pr list --repo ${TARGET_REPO} --head ${ghUser}:${branch} --json url --jq ".[0].url"`,
-    ).trim();
-
-    if (existingPr) {
-      console.log(`\n[publish] PR updated (force-pushed): ${existingPr}`);
-      return;
-    }
-
-    // 14. Create PR
-    const prTitle = alreadyExists
-      ? `feat: update ${instrumentName} (${instrumentId})`
-      : `feat: add ${instrumentName} (${instrumentId})`;
-    const prBody = buildPrBody(manifest, alreadyExists);
-    const bodyFile = join(tempBase, "pr-body.md");
-    await writeFile(bodyFile, prBody);
-
-    const prUrl = run(
-      `gh pr create --repo ${TARGET_REPO} --head ${ghUser}:${branch} --base main --title "${prTitle}" --body-file "${bodyFile}"`,
-    ).trim();
-
-    console.log(`\n[publish] PR created: ${prUrl}`);
-  } finally {
-    // 15. Cleanup
-    await rm(tempBase, { recursive: true, force: true });
+  // 3. Detect mode: maintainer (direct repo) vs external (fork)
+  const repoRoot = detectMaintainerMode(cwd);
+  if (repoRoot) {
+    console.log("[publish] Maintainer mode — creating PR directly");
+    await publishMaintainer(cwd, repoRoot, level);
+  } else {
+    console.log("[publish] Contributor mode — using fork workflow");
+    await publishFork(cwd, level);
   }
 }
