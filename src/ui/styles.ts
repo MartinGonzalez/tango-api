@@ -82,7 +82,7 @@ export const UI_STYLES = `
 
 .tui-root .tui-header {
   border-bottom: 1px solid var(--tui-border);
-  padding-bottom: 10px;
+  padding: 0 12px 10px;
   margin-bottom: 10px;
 }
 
