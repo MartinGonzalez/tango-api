@@ -15,7 +15,8 @@
     "prebuild": "tsc --noEmit",
     "build": "bun run src/sdk/cli/index.ts build",
     "dev": "bun run src/sdk/cli/index.ts dev",
-    "validate": "bun run src/sdk/cli/index.ts validate"
+    "validate": "bun run src/sdk/cli/index.ts validate",
+    "release:rc": "./scripts/release-rc.sh"
   },
   "bin": {
     "tango-sdk": "./src/sdk/cli/index.ts",
