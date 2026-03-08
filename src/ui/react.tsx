@@ -905,7 +905,7 @@ export function UIMarkdownRenderer(props: {
       <div className={classes}>
         <div
           ref={bodyRef}
-          className="tui-markdown-body chat-bubble assistant"
+          className="tui-markdown-body"
         />
       </div>
     );
@@ -938,7 +938,7 @@ export function UIMarkdownRenderer(props: {
       ) : (
         <div
           ref={bodyRef}
-          className="tui-markdown-body chat-bubble assistant"
+          className="tui-markdown-body"
         />
       )}
     </div>
