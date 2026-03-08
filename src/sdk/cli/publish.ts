@@ -236,11 +236,15 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     }
 
     // 14. Create PR
-    const prTitle = `feat: add ${instrumentName} (${instrumentId})`;
+    const prTitle = alreadyExists
+      ? `feat: update ${instrumentName} (${instrumentId})`
+      : `feat: add ${instrumentName} (${instrumentId})`;
     const prBody = buildPrBody(manifest, alreadyExists);
+    const bodyFile = join(tempBase, "pr-body.md");
+    await writeFile(bodyFile, prBody);
 
     const prUrl = run(
-      `gh pr create --repo ${TARGET_REPO} --head ${ghUser}:${branch} --title "${prTitle}" --body "${prBody.replace(/"/g, '\\"')}"`,
+      `gh pr create --repo ${TARGET_REPO} --head ${ghUser}:${branch} --base main --title "${prTitle}" --body-file "${bodyFile}"`,
     ).trim();
 
     console.log(`\n[publish] PR created: ${prUrl}`);
