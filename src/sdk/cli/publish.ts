@@ -178,9 +178,10 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     const branch = `publish/${instrumentId}`;
     run(`git checkout -B ${branch}`, { cwd: cloneDir });
 
-    // 9. Copy instrument files
+    // 9. Copy instrument files (remove old version first for clean diff)
     console.log("[publish] Copying instrument files...");
     const targetDir = join(cloneDir, instrumentId);
+    await rm(targetDir, { recursive: true, force: true });
     await cp(cwd, targetDir, {
       recursive: true,
       filter: (source) => {
