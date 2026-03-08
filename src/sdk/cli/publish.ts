@@ -159,12 +159,16 @@ export async function publishInstrument(projectDir: string): Promise<void> {
   try {
     console.log("[publish] Cloning fork...");
     const ghToken = run("gh auth token").trim();
-    const cloneUrl = `https://${ghUser}:${ghToken}@github.com/${forkRepo}.git`;
-    run(`git clone --depth=1 "${cloneUrl}" "${cloneDir}"`);
+    const authUrl = (repo: string) =>
+      `https://${ghUser}:${ghToken}@github.com/${repo}.git`;
+    run(`git clone --depth=1 "${authUrl(forkRepo)}" "${cloneDir}"`);
+
+    // Disable credential helpers so git never prompts interactively
+    run("git config credential.helper ''", { cwd: cloneDir });
 
     // 7. Sync with upstream
     try {
-      run("git remote add upstream https://github.com/" + TARGET_REPO + ".git", { cwd: cloneDir });
+      run(`git remote add upstream "${authUrl(TARGET_REPO)}"`, { cwd: cloneDir });
     } catch {
       // upstream already exists
     }
