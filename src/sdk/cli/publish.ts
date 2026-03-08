@@ -158,7 +158,9 @@ export async function publishInstrument(projectDir: string): Promise<void> {
 
   try {
     console.log("[publish] Cloning fork...");
-    run(`gh repo clone ${forkRepo} "${cloneDir}" -- --depth=1`);
+    const ghToken = run("gh auth token").trim();
+    const cloneUrl = `https://${ghUser}:${ghToken}@github.com/${forkRepo}.git`;
+    run(`git clone --depth=1 "${cloneUrl}" "${cloneDir}"`);
 
     // 7. Sync with upstream
     try {
