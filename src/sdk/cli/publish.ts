@@ -37,7 +37,13 @@ function run(cmd: string, opts?: { cwd?: string }): string {
     encoding: "utf8",
     cwd: opts?.cwd,
     stdio: ["pipe", "pipe", "pipe"],
-    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+  });
+}
+
+function runInherit(cmd: string, opts?: { cwd?: string }): void {
+  execSync(cmd, {
+    cwd: opts?.cwd,
+    stdio: "inherit",
   });
 }
 
@@ -69,9 +75,7 @@ function getGhUser(): string {
   return run("gh api user -q .login").trim();
 }
 
-async function readManifest(
-  cwd: string,
-): Promise<InstrumentManifest> {
+async function readManifest(cwd: string): Promise<InstrumentManifest> {
   const raw = await readFile(join(cwd, "package.json"), "utf8");
   const parsed = JSON.parse(raw);
   return parsed.tango.instrument as InstrumentManifest;
@@ -153,44 +157,26 @@ export async function publishInstrument(projectDir: string): Promise<void> {
   const ghUser = getGhUser();
   const forkRepo = `${ghUser}/tango-instruments`;
 
-  // 6. Clone fork to temp dir
+  // 6. Clone fork to temp dir using plain git (respects user's SSH/HTTPS config)
   const tempBase = await mkdtemp(join(tmpdir(), "tango-publish-"));
   const cloneDir = join(tempBase, "tango-instruments");
 
   try {
     console.log("[publish] Cloning fork...");
-    const ghToken = run("gh auth token").trim();
-
-    // Write temp credentials file so all git operations authenticate without prompting
-    const credFile = join(tempBase, ".git-credentials");
-    await writeFile(credFile, `https://${ghUser}:${ghToken}@github.com\n`, { mode: 0o600 });
-
-    const gitEnv = {
-      ...process.env,
-      GIT_TERMINAL_PROMPT: "0",
-      GIT_ASKPASS: "",
-      SSH_ASKPASS: "",
-    };
-    const gitRun = (cmd: string, cwd?: string) =>
-      execSync(cmd, { encoding: "utf8", cwd, stdio: ["pipe", "pipe", "pipe"], env: gitEnv });
-
-    gitRun(`git -c credential.helper="store --file=${credFile}" clone --depth=1 https://github.com/${forkRepo}.git "${cloneDir}"`);
-
-    // Configure credential helper for all subsequent operations in this repo
-    gitRun(`git config credential.helper "store --file=${credFile}"`, cloneDir);
+    runInherit(`git clone --depth=1 git@github.com:${forkRepo}.git "${cloneDir}"`);
 
     // 7. Sync with upstream
     try {
-      gitRun(`git remote add upstream https://github.com/${TARGET_REPO}.git`, cloneDir);
+      run(`git remote add upstream git@github.com:${TARGET_REPO}.git`, { cwd: cloneDir });
     } catch {
       // upstream already exists
     }
-    gitRun("git fetch upstream main", cloneDir);
-    gitRun("git reset --hard upstream/main", cloneDir);
+    runInherit(`git fetch upstream main`);
+    run("git reset --hard upstream/main", { cwd: cloneDir });
 
     // 8. Create branch
     const branch = `publish/${instrumentId}`;
-    gitRun(`git checkout -B ${branch}`, cloneDir);
+    run(`git checkout -B ${branch}`, { cwd: cloneDir });
 
     // 9. Copy instrument files
     console.log("[publish] Copying instrument files...");
@@ -220,9 +206,9 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     );
 
     // 11. Commit
-    gitRun("git add -A", cloneDir);
+    run("git add -A", { cwd: cloneDir });
 
-    const status = gitRun("git status --porcelain", cloneDir);
+    const status = run("git status --porcelain", { cwd: cloneDir });
     if (!status.trim()) {
       console.log(
         "[publish] No changes to publish. Instrument is already up to date.",
@@ -233,21 +219,11 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     const commitMsg = alreadyExists
       ? `Update ${instrumentName} (${instrumentId})`
       : `Add ${instrumentName} (${instrumentId})`;
-    gitRun(`git commit -m "${commitMsg}"`, cloneDir);
+    run(`git commit -m "${commitMsg}"`, { cwd: cloneDir });
 
     // 12. Push
     console.log("[publish] Pushing to fork...");
-    try {
-      gitRun(`git push --force origin ${branch}`, cloneDir);
-    } catch (err) {
-      console.error(
-        `[publish] Failed to push to fork (${forkRepo}).\n` +
-          "This usually means your GitHub token lacks 'repo' scope.\n" +
-          "Fix it with: gh auth refresh -s repo",
-      );
-      process.exitCode = 1;
-      return;
-    }
+    runInherit(`git -C "${cloneDir}" push --force origin ${branch}`);
 
     // 13. Check for existing PR
     const existingPr = run(
