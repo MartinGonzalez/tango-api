@@ -93,15 +93,15 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-header-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
 .tui-root .tui-header-subtitle {
   color: var(--tui-text-secondary);
   font-size: 12px;
-  margin-top: 4px;
+  margin-top: 1px;
 }
 
 .tui-root .tui-section {
