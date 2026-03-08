@@ -37,6 +37,7 @@ function run(cmd: string, opts?: { cwd?: string }): string {
     encoding: "utf8",
     cwd: opts?.cwd,
     stdio: ["pipe", "pipe", "pipe"],
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
   });
 }
 
@@ -158,17 +159,14 @@ export async function publishInstrument(projectDir: string): Promise<void> {
 
   try {
     console.log("[publish] Cloning fork...");
-    const ghToken = run("gh auth token").trim();
-    const authUrl = (repo: string) =>
-      `https://${ghUser}:${ghToken}@github.com/${repo}.git`;
-    run(`git clone --depth=1 "${authUrl(forkRepo)}" "${cloneDir}"`);
+    run(`gh repo clone ${forkRepo} "${cloneDir}" -- --depth=1`);
 
-    // Disable credential helpers so git never prompts interactively
-    run("git config credential.helper ''", { cwd: cloneDir });
+    // Configure gh as credential helper so git never prompts
+    run("git config credential.helper '!gh auth git-credential'", { cwd: cloneDir });
 
     // 7. Sync with upstream
     try {
-      run(`git remote add upstream "${authUrl(TARGET_REPO)}"`, { cwd: cloneDir });
+      run(`git remote add upstream https://github.com/${TARGET_REPO}.git`, { cwd: cloneDir });
     } catch {
       // upstream already exists
     }
