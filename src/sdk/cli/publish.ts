@@ -120,7 +120,33 @@ function buildPrBody(
 
 // ── Main ────────────────────────────────────────────────────────
 
-export async function publishInstrument(projectDir: string): Promise<void> {
+type BumpLevel = "patch" | "minor" | "major";
+
+function bumpVersion(version: string, level: BumpLevel): string {
+  const parts = version.split(".").map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    throw new Error(`Invalid semver: ${version}`);
+  }
+  const [major, minor, patch] = parts;
+  switch (level) {
+    case "major": return `${major + 1}.0.0`;
+    case "minor": return `${major}.${minor + 1}.0`;
+    case "patch": return `${major}.${minor}.${patch + 1}`;
+  }
+}
+
+async function bumpPackageVersion(cwd: string, level: BumpLevel): Promise<string> {
+  const pkgPath = join(cwd, "package.json");
+  const raw = await readFile(pkgPath, "utf8");
+  const pkg = JSON.parse(raw);
+  const oldVersion = pkg.version ?? "0.0.0";
+  const newVersion = bumpVersion(oldVersion, level);
+  pkg.version = newVersion;
+  await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+  return newVersion;
+}
+
+export async function publishInstrument(projectDir: string, level: BumpLevel = "patch"): Promise<void> {
   const cwd = resolve(projectDir);
 
   // 1. Check prerequisites
@@ -139,7 +165,11 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     return;
   }
 
-  // 3. Read manifest
+  // 3. Bump version
+  const newVersion = await bumpPackageVersion(cwd, level);
+  console.log(`[publish] Version bumped to ${newVersion}`);
+
+  // 4. Read manifest
   const manifest = await readManifest(cwd);
   const instrumentId = manifest.id;
   const instrumentName = manifest.name;

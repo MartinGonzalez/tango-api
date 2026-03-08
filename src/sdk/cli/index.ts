@@ -9,7 +9,7 @@ Commands:
   build     Build the instrument (frontend + backend)
   dev       Watch, rebuild, and hot-reload on changes
   validate  Validate instrument manifest and structure
-  publish   Publish instrument to the Tango marketplace
+  publish [patch|minor|major]  Publish instrument to the Tango marketplace
 `;
 
 export async function main(argv: string[]): Promise<void> {
@@ -57,8 +57,12 @@ export async function main(argv: string[]): Promise<void> {
     }
 
     case "publish": {
+      const level = (projectPath === "minor" || projectPath === "major") ? projectPath : "patch";
+      const publishCwd = (projectPath === "patch" || projectPath === "minor" || projectPath === "major")
+        ? resolve(process.cwd())
+        : cwd;
       const { publishInstrument } = await import("./publish.ts");
-      await publishInstrument(cwd);
+      await publishInstrument(publishCwd, level);
       break;
     }
 
