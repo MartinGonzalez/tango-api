@@ -171,7 +171,7 @@ export async function publishInstrument(projectDir: string): Promise<void> {
     } catch {
       // upstream already exists
     }
-    runInherit(`git fetch upstream main`);
+    runInherit(`git -C "${cloneDir}" fetch upstream main`);
     run("git reset --hard upstream/main", { cwd: cloneDir });
 
     // 8. Create branch
