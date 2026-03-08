@@ -9,6 +9,7 @@ Commands:
   build     Build the instrument (frontend + backend)
   dev       Watch, rebuild, and hot-reload on changes
   validate  Validate instrument manifest and structure
+  publish   Publish instrument to the Tango marketplace
 `;
 
 export async function main(argv: string[]): Promise<void> {
@@ -52,6 +53,12 @@ export async function main(argv: string[]): Promise<void> {
         }
         process.exitCode = 1;
       }
+      break;
+    }
+
+    case "publish": {
+      const { publishInstrument } = await import("./publish.ts");
+      await publishInstrument(cwd);
       break;
     }
 
