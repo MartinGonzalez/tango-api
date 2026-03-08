@@ -172,54 +172,78 @@ async function publishMaintainer(cwd: string, repoRoot: string, level: BumpLevel
   const instrumentId = manifest.id;
   const instrumentName = manifest.name;
 
-  // Must be on a feature branch
-  const branch = run("git branch --show-current", { cwd: repoRoot });
-  if (branch === "main") {
-    // Auto-create a branch from the instrument id and bump level
-    const newBranch = `feat/${instrumentId}-${level}`;
-    console.log(`[publish] On main — creating branch ${newBranch}...`);
-    run(`git checkout -b ${newBranch}`, { cwd: repoRoot });
+  const startBranch = run("git branch --show-current", { cwd: repoRoot });
+  const wasOnMain = startBranch === "main";
+
+  // Stash any uncommitted changes so the branch is clean
+  const hadStash = run("git stash push -m tango-publish-temp", { cwd: repoRoot }) !== "No local changes to save";
+
+  try {
+    // Create a feature branch from main
+    if (wasOnMain) {
+      const newBranch = `feat/${instrumentId}-${level}`;
+      console.log(`[publish] Creating branch ${newBranch}...`);
+      run(`git checkout -b ${newBranch}`, { cwd: repoRoot });
+    }
+
+    const currentBranch = run("git branch --show-current", { cwd: repoRoot });
+
+    // Restore stash so we have the changes back
+    if (hadStash) {
+      run("git stash pop", { cwd: repoRoot });
+    }
+
+    // Bump version
+    const newVersion = await bumpPackageVersion(cwd, level);
+    console.log(`[publish] ${instrumentName} (${instrumentId}) → v${newVersion}`);
+
+    // Stage only this instrument's directory
+    run(`git add "${cwd}"`, { cwd: repoRoot });
+
+    const staged = run("git diff --cached --name-only", { cwd: repoRoot });
+    if (!staged) {
+      console.log("[publish] No changes to publish. Already up to date.");
+      return;
+    }
+
+    const commitMsg = `Update ${instrumentName} to v${newVersion}`;
+    run(`git commit -m "${commitMsg}"`, { cwd: repoRoot });
+
+    // Push
+    console.log(`[publish] Pushing ${currentBranch}...`);
+    runInherit(`git push -u origin ${currentBranch}`, { cwd: repoRoot });
+
+    // Check for existing PR
+    const existingPr = run(
+      `gh pr list --repo ${TARGET_REPO} --head ${currentBranch} --json url --jq ".[0].url"`,
+    );
+    if (existingPr) {
+      console.log(`\n[publish] PR updated: ${existingPr}`);
+    } else {
+      // Create PR
+      const prTitle = `feat: update ${instrumentName} to v${newVersion}`;
+      const prBody = buildPrBody(manifest, true);
+      const prUrl = run(
+        `gh pr create --repo ${TARGET_REPO} --base main --head ${currentBranch} --title "${prTitle}" --body "${prBody.replace(/"/g, '\\"')}"`,
+        { cwd: repoRoot },
+      );
+      console.log(`\n[publish] PR created: ${prUrl}`);
+    }
+
+    // Return to main so next publish starts clean
+    if (wasOnMain) {
+      run("git checkout main", { cwd: repoRoot });
+    }
+  } catch (err) {
+    // If something failed, try to get back to a clean state
+    if (wasOnMain) {
+      try { run("git checkout main", { cwd: repoRoot }); } catch { /* best effort */ }
+    }
+    if (hadStash) {
+      try { run("git stash pop", { cwd: repoRoot }); } catch { /* best effort */ }
+    }
+    throw err;
   }
-
-  const currentBranch = run("git branch --show-current", { cwd: repoRoot });
-
-  // Bump version
-  const newVersion = await bumpPackageVersion(cwd, level);
-  console.log(`[publish] ${instrumentName} (${instrumentId}) → v${newVersion}`);
-
-  // Stage and commit
-  run("git add -A", { cwd: repoRoot });
-  const status = run("git status --porcelain", { cwd: repoRoot });
-  if (!status) {
-    console.log("[publish] No changes to publish. Already up to date.");
-    return;
-  }
-
-  const commitMsg = `Update ${instrumentName} to v${newVersion}`;
-  run(`git commit -m "${commitMsg}"`, { cwd: repoRoot });
-
-  // Push
-  console.log(`[publish] Pushing ${currentBranch}...`);
-  runInherit(`git push -u origin ${currentBranch}`, { cwd: repoRoot });
-
-  // Check for existing PR
-  const existingPr = run(
-    `gh pr list --repo ${TARGET_REPO} --head ${currentBranch} --json url --jq ".[0].url"`,
-  );
-  if (existingPr) {
-    console.log(`\n[publish] PR updated: ${existingPr}`);
-    return;
-  }
-
-  // Create PR
-  const prTitle = `feat: update ${instrumentName} to v${newVersion}`;
-  const prBody = buildPrBody(manifest, true);
-  const prUrl = run(
-    `gh pr create --repo ${TARGET_REPO} --base main --head ${currentBranch} --title "${prTitle}" --body "${prBody.replace(/"/g, '\\"')}"`,
-    { cwd: repoRoot },
-  );
-
-  console.log(`\n[publish] PR created: ${prUrl}`);
 }
 
 // ── External contributor flow (fork) ────────────────────────────
