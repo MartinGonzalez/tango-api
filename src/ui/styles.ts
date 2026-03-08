@@ -1126,6 +1126,7 @@ export const UI_STYLES = `
 .tui-root .tui-markdown-body {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
   padding: 16px 0 18px;
 }
