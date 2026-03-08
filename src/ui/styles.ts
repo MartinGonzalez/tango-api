@@ -1129,6 +1129,44 @@ export const UI_STYLES = `
   min-width: 0;
   overflow: auto;
   padding: 16px 0 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--tui-text);
+}
+
+.tui-root .tui-markdown-body p {
+  margin: 0 0 10px;
+}
+
+.tui-root .tui-markdown-body h1,
+.tui-root .tui-markdown-body h2,
+.tui-root .tui-markdown-body h3,
+.tui-root .tui-markdown-body h4,
+.tui-root .tui-markdown-body h5,
+.tui-root .tui-markdown-body h6 {
+  margin: 14px 0 6px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tui-root .tui-markdown-body h1 { font-size: 18px; }
+.tui-root .tui-markdown-body h2 { font-size: 16px; }
+.tui-root .tui-markdown-body h3 { font-size: 14px; }
+
+.tui-root .tui-markdown-body ul,
+.tui-root .tui-markdown-body ol {
+  margin: 0 0 10px 20px;
+}
+
+.tui-root .tui-markdown-body li {
+  margin: 4px 0;
+}
+
+.tui-root .tui-markdown-body blockquote {
+  margin: 10px 0;
+  padding: 4px 0 4px 12px;
+  border-left: 3px solid var(--tui-border);
+  color: var(--tui-text-secondary);
 }
 
 .tui-root .tui-markdown-body a {
