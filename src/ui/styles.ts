@@ -77,6 +77,7 @@ export const UI_STYLES = `
   border-radius: var(--tui-radius-panel);
   background: var(--tui-bg-card);
   padding: 10px;
+  overflow: hidden;
 }
 
 .tui-root .tui-header {
