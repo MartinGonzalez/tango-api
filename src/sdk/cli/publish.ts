@@ -218,7 +218,17 @@ export async function publishInstrument(projectDir: string): Promise<void> {
 
     // 12. Push
     console.log("[publish] Pushing to fork...");
-    run(`git push --force origin ${branch}`, { cwd: cloneDir });
+    try {
+      run(`git push --force origin ${branch}`, { cwd: cloneDir });
+    } catch (err) {
+      console.error(
+        `[publish] Failed to push to fork (${forkRepo}).\n` +
+          "This usually means your GitHub token lacks 'repo' scope.\n" +
+          "Fix it with: gh auth refresh -s repo",
+      );
+      process.exitCode = 1;
+      return;
+    }
 
     // 13. Check for existing PR
     const existingPr = run(
