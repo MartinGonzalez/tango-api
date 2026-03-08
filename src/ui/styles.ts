@@ -8,6 +8,7 @@ export const UI_STYLES = `
   --tui-bg-hover: var(--bg-hover, #2a2d2e);
   --tui-text: var(--text, #e5e7eb);
   --tui-text-secondary: var(--text-secondary, #9ca3af);
+  --tui-text-tertiary: var(--text-tertiary, #6b7280);
   --tui-border: var(--border, #333333);
   --tui-primary: var(--primary, #d97757);
   --tui-primary-soft: rgba(217, 119, 87, 0.18);
@@ -82,7 +83,7 @@ export const UI_STYLES = `
 
 .tui-root .tui-header {
   border-bottom: 1px solid var(--tui-border);
-  padding: 0 12px 10px;
+  padding: 6px 12px;
   margin-bottom: 10px;
 }
 
@@ -93,15 +94,14 @@ export const UI_STYLES = `
 }
 
 .tui-root .tui-header-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.2;
 }
 
 .tui-root .tui-header-subtitle {
-  color: var(--tui-text-secondary);
-  font-size: 12px;
-  margin-top: 1px;
+  color: var(--tui-text-tertiary);
+  font-size: 11px;
 }
 
 .tui-root .tui-section {
