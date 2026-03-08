@@ -179,11 +179,11 @@ async function publishMaintainer(cwd: string, repoRoot: string, level: BumpLevel
   const hadStash = run("git stash push -m tango-publish-temp", { cwd: repoRoot }) !== "No local changes to save";
 
   try {
-    // Create a feature branch from main
+    // Create or reset feature branch from main
     if (wasOnMain) {
       const newBranch = `feat/${instrumentId}-${level}`;
-      console.log(`[publish] Creating branch ${newBranch}...`);
-      run(`git checkout -b ${newBranch}`, { cwd: repoRoot });
+      console.log(`[publish] Switching to branch ${newBranch}...`);
+      run(`git checkout -B ${newBranch}`, { cwd: repoRoot });
     }
 
     const currentBranch = run("git branch --show-current", { cwd: repoRoot });
@@ -209,9 +209,9 @@ async function publishMaintainer(cwd: string, repoRoot: string, level: BumpLevel
     const commitMsg = `Update ${instrumentName} to v${newVersion}`;
     run(`git commit -m "${commitMsg}"`, { cwd: repoRoot });
 
-    // Push
+    // Push (force-with-lease handles branch reset from main)
     console.log(`[publish] Pushing ${currentBranch}...`);
-    runInherit(`git push -u origin ${currentBranch}`, { cwd: repoRoot });
+    runInherit(`git push --force-with-lease -u origin ${currentBranch}`, { cwd: repoRoot });
 
     // Check for existing PR
     const existingPr = run(
