@@ -33,6 +33,7 @@ export type {
   ShortcutRegistration,
   StageAPI,
   StorageAPI,
+  TaskHandle,
   TangoInstrumentDefinition,
   UIAPI,
   TangoPanelComponent,

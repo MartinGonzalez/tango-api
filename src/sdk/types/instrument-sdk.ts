@@ -243,12 +243,21 @@ export type InstrumentBackendHostAPI = {
   settings: InstrumentSettingsAPI;
 };
 
+export type TaskHandle = {
+  done(): void;
+  fail(error?: string): void;
+};
+
 export type InstrumentBackendContext = {
   instrumentId: string;
   permissions: InstrumentPermission[];
   emit: (event: Omit<InstrumentEvent, "instrumentId">) => void;
   logger: LoggerAPI;
   host: InstrumentBackendHostAPI;
+  task: {
+    (label: string): TaskHandle;
+    <T>(label: string, fn: () => Promise<T> | T): Promise<T>;
+  };
 };
 
 export type InstrumentBackgroundRefreshContext = {

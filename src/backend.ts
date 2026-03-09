@@ -9,4 +9,5 @@ export type {
   InstrumentBackendDefinition,
   InstrumentBackendHostAPI,
   InstrumentBackgroundRefreshContext,
+  TaskHandle,
 } from "./sdk/index.ts";
