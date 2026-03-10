@@ -13,6 +13,12 @@ export function defineBackend(
   return definition;
 }
 
+export async function getPreferences<T extends Record<string, unknown> = Record<string, unknown>>(
+  ctx: { host: { settings: { getValues: <V>() => Promise<V> } } },
+): Promise<T> {
+  return ctx.host.settings.getValues<T>();
+}
+
 export type {
   ActionSchema,
   ConnectorsAPI,

@@ -47,6 +47,7 @@ export {
   usePanelVisibility,
   useInstrumentAction,
   useInstrumentSettings,
+  usePreferences,
   useLogger,
   useSession,
   useMemoAction,

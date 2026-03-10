@@ -135,6 +135,11 @@ export function useInstrumentSettings<T extends Record<string, unknown> = Record
   };
 }
 
+export function usePreferences<T extends Record<string, unknown> = Record<string, unknown>>(): T {
+  const { values } = useInstrumentSettings<T>();
+  return values;
+}
+
 function extractTextFromBlocks(blocks: ContentBlock[]): string {
   return blocks
     .filter((b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text")
